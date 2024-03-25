@@ -90,9 +90,9 @@ const Form = () => {
                     onChangeText={setReject}
                 />
                 <Calendar
-                    current={tanggal}
+                    current={tanggal.toISOString().split('T')[0]} 
                     onDayPress={(day) => setTanggal(new Date(day.timestamp))}
-                    style={{ borderWidth: 1, borderColor: 'gray', borderRadius: 5 }}
+                    style={{ borderWidth: 1, borderColor: 'gray', borderRadius: 5, width:'100%' }}
                     markedDates={{ [tanggal.toISOString().slice(0, 10)]: { selected: true, selectedColor: 'blue' } }}
                     theme={{
                         calendarBackground: '#ffffff',
@@ -115,12 +115,13 @@ const Form = () => {
 
 const styles = StyleSheet.create({
         container: {
+            width: '90%',
           flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
         },
         input: {
-          width: '80%',
+          width: '70%',
           height: 40,
           marginVertical: 10,
           paddingHorizontal: 10,

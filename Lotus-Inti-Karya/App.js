@@ -1,12 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView,  Platform } from 'react-native';
 import Form from './pages/main';
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Form />
-    </View>
+    <SafeAreaView style={styles.AndroidSafeArea}>
+      <Form/>
+    </SafeAreaView>
   );
 }
 
@@ -17,4 +17,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  AndroidSafeArea: {
+    flex: 1,
+    backgroundColor: "white",
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 10
+  }
 });
