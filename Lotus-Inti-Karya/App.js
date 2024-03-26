@@ -1,12 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, SafeAreaView,  Platform } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import Form from './pages/main';
+import Register from './pages/register';
 
 export default function App() {
   return (
-    <SafeAreaView style={styles.AndroidSafeArea}>
-      <Form/>
-    </SafeAreaView>
+    <Register/>
+    // <Form/>
   );
 }
 

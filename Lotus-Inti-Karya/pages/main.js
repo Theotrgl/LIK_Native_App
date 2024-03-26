@@ -3,14 +3,14 @@ import {
   ScrollView,
   View,
   TextInput,
-  Button,
   StyleSheet,
   Text,
   SafeAreaView,
   StatusBar,
-  FlatList,
 } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
+import COLORS from "../constants/colors";
+import Button from "../components/Button";
 
 LocaleConfig.locales["id"] = {
   monthNames: [
@@ -176,7 +176,7 @@ const Form = () => {
             }}
             theme={styles.calendarTheme}
           />
-          <Button title="Submit" onPress={handleSubmit} style={styles.button} />
+          <Button title="Submit" onPress={handleSubmit} style={{marginTop: 22, width:"100%"}} />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -203,40 +203,35 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     marginBottom: 5,
-    color: "#333",
+    color: COLORS.black,
   },
   input: {
     width: "100%",
     height: 40,
     paddingHorizontal: 10,
-    borderColor: "#ccc",
+    borderColor: COLORS.grey,
     borderWidth: 1,
     borderRadius: 5,
   },
   calendar: {
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: COLORS.grey,
     borderRadius: 5,
     width: "100%",
     marginBottom: 10,
   },
   calendarTheme: {
-    calendarBackground: "#ffffff",
+    calendarBackground: COLORS.white,
     textSectionTitleColor: "#b6c1cd",
     selectedDayBackgroundColor: "#00adf5",
     selectedDayTextColor: "#ffffff",
-    todayTextColor: "#00adf5",
+    todayTextColor: COLORS.info,
     dayTextColor: "#2d4150",
     textDisabledColor: "#d9e1e8",
-    dotColor: "#00adf5",
-    selectedDotColor: "#ffffff",
-    arrowColor: "blue",
-    monthTextColor: "blue",
-  },
-  button: {
-    marginTop: 10,
-    paddingTop: 10,
-    // paddingBottom: 20,
+    dotColor: COLORS.primary,
+    selectedDotColor: COLORS.info,
+    arrowColor: COLORS.primary,
+    monthTextColor: COLORS.primary,
   },
 });
 
