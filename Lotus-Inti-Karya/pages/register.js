@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   View,
-  TextInput,
   Text,
   StyleSheet,
   Alert,
@@ -11,6 +10,7 @@ import {
 } from "react-native";
 import COLORS from "../constants/colors";
 import Button from "../components/Button";
+import MyTextInput from "../components/InputField";
 
 const Register = () => {
   const [username, setUsername] = useState("");
@@ -28,11 +28,6 @@ const Register = () => {
     //   Alert.alert("Passwords do not match");
     //   return;
     // }
-
-    // setUsername("");
-    // setEmail("");
-    // setPassword("");
-    // setConfirmPassword("");
 
     try {
       const response = await fetch('http://127.0.0.1:8000/api/register_user/', {
@@ -72,85 +67,54 @@ const Register = () => {
             color: COLORS.black,
           }}
         >
-          Create Account
+          Buat Akun
         </Text>
       </View>
+
       <View>
         <View style={{ marginBottom: 12 }}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: 400,
-              marginVertical: 8,
-            }}
-          >
-            Username
-          </Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter Username"
+          <MyTextInput
+            label="Username:"
+            icon="user"
+            placeholder="Masukkan Username"
             value={username}
             onChangeText={setUsername}
-            placeholderTextColor="#999"
           />
         </View>
 
         <View style={{ marginBottom: 12 }}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: 400,
-              marginVertical: 8,
-            }}
-          >
-            Email address
-          </Text>
-
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your Email Address"
+          <MyTextInput
+            label="Alamat Email:"
+            icon="mail"
+            placeholder="Masukkan Alamat Email"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
-            placeholderTextColor="#999"
           />
         </View>
+
         <View style={{ marginBottom: 12 }}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: 400,
-              marginVertical: 8,
-            }}
-          >
-            Password
-          </Text>
-          <TextInput
-            style={styles.input}
+          <MyTextInput
+            label="Password:"
+            icon="lock"
             placeholder="Password"
             value={password}
             onChangeText={setPassword}
-            placeholderTextColor="#999"
+            secureTextEntry={true}
           />
         </View>
+
         <View style={{ marginBottom: 12 }}>
-          {/* <Text
-            style={{
-              fontSize: 16,
-              fontWeight: 400,
-              marginVertical: 8,
-            }}
-          >
-            Confirm Password
-          </Text> */}
-          {/* <TextInput
-            style={styles.input}
-            placeholder="Confirm Password"
+          <MyTextInput
+            label="Konfirmasi Password:"
+            icon="lock"
+            placeholder="Konfirmasi Password"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
-            placeholderTextColor="#999"
-          /> */}
+            secureTextEntry={true}
+          />
         </View>
+
         <Button
           title="Register"
           onPress={handleRegister}
@@ -160,6 +124,7 @@ const Register = () => {
             marginBottom: 4,
           }}
         />
+
         <View
           style={{
             flexDirection: "row",
@@ -168,7 +133,7 @@ const Register = () => {
           }}
         >
           <Text style={{ fontSize: 16, color: COLORS.black }}>
-            Already have an account
+            Sudah punya akun?
           </Text>
           <Pressable onPress={() => navigation.navigate("login")}>
             <Text
@@ -189,25 +154,10 @@ const Register = () => {
 };
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    marginTop: 20,
-  },
   container: {
     justifyContent: "center",
     alignItems: "center",
     width: "100%",
-  },
-  input: {
-    width: "100%",
-    height: 40,
-    paddingHorizontal: 10,
-    borderColor: COLORS.black,
-    borderWidth: 1,
-    borderRadius: 5,
   },
 });
 

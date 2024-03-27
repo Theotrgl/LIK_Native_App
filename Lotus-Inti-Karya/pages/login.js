@@ -1,23 +1,26 @@
-import React, { useState } from "react";
 import {
   View,
-  TextInput,
   Text,
-  StyleSheet,
-  Alert,
   SafeAreaView,
   StatusBar,
+  StyleSheet,
   Pressable,
 } from "react-native";
-import COLORS from "../constants/colors";
+import React, { useState } from "react";
+import MyTextInput from "../components/InputField";
 import Button from "../components/Button";
-
+import COLORS from "../constants/colors";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const loginUser = async () => {
+  const handleLogin = async () => {
+    
+    if (!username || !email) {
+      Alert.alert("All fields are required");
+      return;
+    }
     try {
       const response = await fetch('http://127.0.0.1:8000/api/login_user/', {
         method: 'POST',
@@ -63,53 +66,27 @@ const Login = () => {
       </View>
       <View>
         <View style={{ marginBottom: 12 }}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: 400,
-              marginVertical: 8,
-            }}
-          >
-            Username
-          </Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter Username"
+          <MyTextInput
+            label="Username:"
+            icon="user"
+            placeholder="Masukkan Username"
             value={username}
             onChangeText={setUsername}
-            placeholderTextColor="#999"
           />
         </View>
-
         <View style={{ marginBottom: 12 }}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: 400,
-              marginVertical: 8,
-            }}
-          >
-            Password
-          </Text>
-          <TextInput
-            style={styles.input}
+          <MyTextInput
+            label="Password:"
+            icon="lock"
             placeholder="Password"
             value={password}
             onChangeText={setPassword}
-            placeholderTextColor="#999"
+            secureTextEntry={true}
           />
         </View>
-
         <Button
-          title="Login"
-          onPress={loginUser}
-          filled
-          style={{
-            marginTop: 18,
-            marginBottom: 4,
-          }}
-        />
-
+          title="Register"
+          onPress={handleLogin}
         <View
           style={{
             flexDirection: "row",
@@ -118,7 +95,7 @@ const Login = () => {
           }}
         >
           <Text style={{ fontSize: 16, color: COLORS.black }}>
-            Kalau belum punya akun tekan
+            Belum punya akun?
           </Text>
           <Pressable onPress={() => navigation.navigate("register")}>
             <Text
@@ -139,25 +116,10 @@ const Login = () => {
 };
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    marginTop: 20,
-  },
   container: {
     justifyContent: "center",
     alignItems: "center",
     width: "100%",
-  },
-  input: {
-    width: "100%",
-    height: 40,
-    paddingHorizontal: 10,
-    borderColor: COLORS.black,
-    borderWidth: 1,
-    borderRadius: 5,
   },
 });
 
