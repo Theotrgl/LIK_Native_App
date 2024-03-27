@@ -53,16 +53,8 @@ const Register = () => {
 
       <View>
         <View style={{ marginBottom: 12 }}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: 400,
-              marginVertical: 8,
-            }}
-          >
-            Username:
-          </Text>
           <MyTextInput
+            label="Username:"
             icon="user"
             placeholder="Masukkan Username"
             value={username}
@@ -71,17 +63,8 @@ const Register = () => {
         </View>
 
         <View style={{ marginBottom: 12 }}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: 400,
-              marginVertical: 8,
-            }}
-          >
-            Alamat Email:
-          </Text>
-
           <MyTextInput
+            label="Alamat Email:"
             icon="mail"
             placeholder="Masukkan Alamat Email"
             value={email}
@@ -91,16 +74,8 @@ const Register = () => {
         </View>
 
         <View style={{ marginBottom: 12 }}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: 400,
-              marginVertical: 8,
-            }}
-          >
-            Password:
-          </Text>
           <MyTextInput
+            label="Password:"
             icon="lock"
             placeholder="Password"
             value={password}
@@ -110,16 +85,8 @@ const Register = () => {
         </View>
 
         <View style={{ marginBottom: 12 }}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: 400,
-              marginVertical: 8,
-            }}
-          >
-            Konfirmasi Password:
-          </Text>
           <MyTextInput
+            label="Konfirmasi Password:"
             icon="lock"
             placeholder="Konfirmasi Password"
             value={confirmPassword}

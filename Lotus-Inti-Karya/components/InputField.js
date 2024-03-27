@@ -1,5 +1,11 @@
 import * as React from "react";
-import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import COLORS from "../constants/colors";
 import { Feather } from "@expo/vector-icons";
 
@@ -37,35 +43,38 @@ class MyTextInput extends React.Component {
     // We should also make sure to remove the `onFocus` and
     // `onBlur` props from the `...otherProps`, otherwise
     // they would override our own handlers.
-    const { icon, onFocus, onBlur, ...otherProps } = this.props;
+    const { icon, label, onFocus, onBlur, ...otherProps } = this.props;
 
     return (
-      <TouchableOpacity
-        activeOpacity={1}
-        onPress={() => this.inputRef.focus()}
-        style={[
-          styles.container,
-          { borderColor: isFocused ? COLORS.primary : "#999" },
-        ]}
-      >
-        {icon && (
-          <Feather
-            name={icon}
-            size={24}
-            color={isFocused ? COLORS.primary : "#999"}
-            style={styles.icon}
+      <View>
+        {label && <Text style={styles.label}>{label}</Text>}
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => this.inputRef.focus()}
+          style={[
+            styles.container,
+            { borderColor: isFocused ? COLORS.primary : "#999" },
+          ]}
+        >
+          {icon && (
+            <Feather
+              name={icon}
+              size={24}
+              color={isFocused ? COLORS.primary : "#999"}
+              style={styles.icon}
+            />
+          )}
+          <TextInput
+            ref={(ref) => (this.inputRef = ref)}
+            selectionColor={COLORS.primary}
+            placeholderTextColor={isFocused ? COLORS.primary : "#999"}
+            onFocus={this.handleFocus}
+            onBlur={this.handleBlur}
+            style={styles.input}
+            {...otherProps}
           />
-        )}
-        <TextInput
-          ref={(ref) => (this.inputRef = ref)}
-          selectionColor={COLORS.primary}
-          placeholderTextColor={isFocused ? COLORS.primary : "#999"}
-          onFocus={this.handleFocus}
-          onBlur={this.handleBlur}
-          style={styles.input}
-          {...otherProps}
-        />
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </View>
     );
   }
 }
@@ -91,6 +100,11 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginRight: 5,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "400",
+    marginVertical: 8,
   },
 });
 
