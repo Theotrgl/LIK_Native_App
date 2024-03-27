@@ -8,18 +8,20 @@ import {
   StatusBar,
   Pressable,
 } from "react-native";
+import { useNavigation } from "@react-navigation/core";
 import COLORS from "../constants/colors";
 import Button from "../components/Button";
 import MyTextInput from "../components/InputField";
 
 const Register = () => {
+  const navigation = useNavigation();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  // const [confirmPassword, setConfirmPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleRegister = async () => {
-    if (!username || !email || !password ) {       //|| !confirmPassword) {
+    if (!username || !email || !password || !confirmPassword) {
       Alert.alert("All fields are required");
       return;
     }
@@ -135,7 +137,7 @@ const Register = () => {
           <Text style={{ fontSize: 16, color: COLORS.black }}>
             Sudah punya akun?
           </Text>
-          <Pressable onPress={() => navigation.navigate("login")}>
+          <Pressable onPress={() => navigation.navigate("Login")}>
             <Text
               style={{
                 fontSize: 16,

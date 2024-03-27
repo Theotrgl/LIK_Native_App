@@ -1,27 +1,10 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Platform } from 'react-native';
-import Form from './pages/main';
-import Register from './pages/register';
-import Login from './pages/login';
+import React from "react";
+import Form from "./pages/main";
+import Register from "./pages/register";
+import Login from "./pages/login";
+
+import RootStack from "./navigators/RootStack";
 
 export default function App() {
-  return (
-    // <Login/>
-    <Register/>
-    // <Form/>
-  );
+  return <RootStack />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  AndroidSafeArea: {
-    flex: 1,
-    backgroundColor: "white",
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 10
-  }
-});

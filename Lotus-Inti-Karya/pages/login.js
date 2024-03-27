@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,30 +7,30 @@ import {
   StyleSheet,
   Pressable,
 } from "react-native";
-import React, { useState } from "react";
+import { useNavigation } from "@react-navigation/core";
 import MyTextInput from "../components/InputField";
 import Button from "../components/Button";
 import COLORS from "../constants/colors";
 
 const Login = () => {
+  const navigation = useNavigation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
-    
     if (!username || !email) {
       Alert.alert("All fields are required");
       return;
     }
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/login_user/', {
-        method: 'POST',
+      const response = await fetch("http://127.0.0.1:8000/api/login_user/", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           username: username,
-          password: password
+          password: password,
         }),
       });
 
@@ -37,14 +38,14 @@ const Login = () => {
         const data = await response.json();
         const token = data.token;
         // Store token securely using authUtils storeToken function
-        Alert.alert('Success', 'Logged in successfully');
+        Alert.alert("Success", "Logged in successfully");
         // Handle navigation to next screen or other actions after successful login
       } else {
-        Alert.alert('Error', 'Invalid credentials');
+        Alert.alert("Error", "Invalid credentials");
       }
     } catch (error) {
-      console.error('Error:', error);
-      Alert.alert('Error', 'Something went wrong');
+      console.error("Error:", error);
+      Alert.alert("Error", "Something went wrong");
     }
   };
 
@@ -85,8 +86,11 @@ const Login = () => {
           />
         </View>
         <Button
-          title="Register"
+          title="Login"
           onPress={handleLogin}
+          filled
+          style={{ marginTop: 18, marginBottom: 4 }}
+        />
         <View
           style={{
             flexDirection: "row",
@@ -97,7 +101,7 @@ const Login = () => {
           <Text style={{ fontSize: 16, color: COLORS.black }}>
             Belum punya akun?
           </Text>
-          <Pressable onPress={() => navigation.navigate("register")}>
+          <Pressable onPress={() => navigation.navigate("Register")}>
             <Text
               style={{
                 fontSize: 16,
