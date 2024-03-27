@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   View,
-  TextInput,
   Text,
   StyleSheet,
   Alert,
@@ -11,6 +10,7 @@ import {
 } from "react-native";
 import COLORS from "../constants/colors";
 import Button from "../components/Button";
+import MyTextInput from "../components/InputField";
 
 const Register = () => {
   const [username, setUsername] = useState("");
@@ -47,9 +47,10 @@ const Register = () => {
             color: COLORS.black,
           }}
         >
-          Create Account
+          Buat Akun
         </Text>
       </View>
+
       <View>
         <View style={{ marginBottom: 12 }}>
           <Text
@@ -61,12 +62,11 @@ const Register = () => {
           >
             Username:
           </Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter Username"
+          <MyTextInput
+            icon="user"
+            placeholder="Masukkan Username"
             value={username}
             onChangeText={setUsername}
-            placeholderTextColor="#999"
           />
         </View>
 
@@ -78,18 +78,18 @@ const Register = () => {
               marginVertical: 8,
             }}
           >
-            Email address
+            Alamat Email:
           </Text>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your Email Address"
+          <MyTextInput
+            icon="mail"
+            placeholder="Masukkan Alamat Email"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
-            placeholderTextColor="#999"
           />
         </View>
+
         <View style={{ marginBottom: 12 }}>
           <Text
             style={{
@@ -98,16 +98,17 @@ const Register = () => {
               marginVertical: 8,
             }}
           >
-            Password
+            Password:
           </Text>
-          <TextInput
-            style={styles.input}
+          <MyTextInput
+            icon="lock"
             placeholder="Password"
             value={password}
             onChangeText={setPassword}
-            placeholderTextColor="#999"
+            secureTextEntry={true}
           />
         </View>
+
         <View style={{ marginBottom: 12 }}>
           <Text
             style={{
@@ -116,16 +117,17 @@ const Register = () => {
               marginVertical: 8,
             }}
           >
-            Confirm Password
+            Konfirmasi Password:
           </Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Confirm Password"
+          <MyTextInput
+            icon="lock"
+            placeholder="Konfirmasi Password"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
-            placeholderTextColor="#999"
+            secureTextEntry={true}
           />
         </View>
+
         <Button
           title="Register"
           onPress={handleRegister}
@@ -135,6 +137,7 @@ const Register = () => {
             marginBottom: 4,
           }}
         />
+
         <View
           style={{
             flexDirection: "row",
@@ -143,7 +146,7 @@ const Register = () => {
           }}
         >
           <Text style={{ fontSize: 16, color: COLORS.black }}>
-            Already have an account
+            Sudah punya akun?
           </Text>
           <Pressable onPress={() => navigation.navigate("login")}>
             <Text
@@ -164,25 +167,10 @@ const Register = () => {
 };
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    marginTop: 20,
-  },
   container: {
     justifyContent: "center",
     alignItems: "center",
     width: "100%",
-  },
-  input: {
-    width: "100%",
-    height: 40,
-    paddingHorizontal: 10,
-    borderColor: COLORS.black,
-    borderWidth: 1,
-    borderRadius: 5,
   },
 });
 

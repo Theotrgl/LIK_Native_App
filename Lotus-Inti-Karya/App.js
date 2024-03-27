@@ -2,11 +2,13 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Platform } from 'react-native';
 import Form from './pages/main';
 import Register from './pages/register';
+import Login from './pages/login';
 
 export default function App() {
   return (
-    <Register/>
+    // <Register/>
     // <Form/>
+    <Login />
   );
 }
 
