@@ -16,23 +16,48 @@ const Register = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  // const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleRegister = () => {
-    if (!username || !email || !password || !confirmPassword) {
+  const handleRegister = async () => {
+    if (!username || !email || !password ) {       //|| !confirmPassword) {
       Alert.alert("All fields are required");
       return;
     }
 
-    if (password !== confirmPassword) {
-      Alert.alert("Passwords do not match");
-      return;
-    }
+    // if (password !== confirmPassword) {
+    //   Alert.alert("Passwords do not match");
+    //   return;
+    // }
 
-    setUsername("");
-    setEmail("");
-    setPassword("");
-    setConfirmPassword("");
+    // setUsername("");
+    // setEmail("");
+    // setPassword("");
+    // setConfirmPassword("");
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/register_user/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: username,
+          email: email,
+          password: password,
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to register user');
+      }
+  
+      // Handle successful registration
+      Alert.alert('Success', 'User registered successfully');
+      // Clear input fields or navigate to login screen, etc.
+    } catch (error) {
+      console.error('Error:', error);
+      Alert.alert('Error', 'Failed to register user ');
+    }
   };
   const statusBarHeight = StatusBar.currentHeight || 0;
 
@@ -59,7 +84,7 @@ const Register = () => {
               marginVertical: 8,
             }}
           >
-            Username:
+            Username
           </Text>
           <TextInput
             style={styles.input}
@@ -109,7 +134,7 @@ const Register = () => {
           />
         </View>
         <View style={{ marginBottom: 12 }}>
-          <Text
+          {/* <Text
             style={{
               fontSize: 16,
               fontWeight: 400,
@@ -117,14 +142,14 @@ const Register = () => {
             }}
           >
             Confirm Password
-          </Text>
-          <TextInput
+          </Text> */}
+          {/* <TextInput
             style={styles.input}
             placeholder="Confirm Password"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             placeholderTextColor="#999"
-          />
+          /> */}
         </View>
         <Button
           title="Register"
