@@ -6,9 +6,9 @@ import Login from './pages/login';
 
 export default function App() {
   return (
-    // <Register/>
-    <Form/>
-    // <Login />
+    // <Login/>
+    <Register/>
+    // <Form/>
   );
 }
 

@@ -15,18 +15,41 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    
     if (!username || !email) {
       Alert.alert("All fields are required");
       return;
     }
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/login_user/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: username,
+          password: password
+        }),
+      });
 
-    setUsername("");
-    setEmail("");
-    setPassword("");
-    setConfirmPassword("");
+      if (response.ok) {
+        const data = await response.json();
+        const token = data.token;
+        // Store token securely using authUtils storeToken function
+        Alert.alert('Success', 'Logged in successfully');
+        // Handle navigation to next screen or other actions after successful login
+      } else {
+        Alert.alert('Error', 'Invalid credentials');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      Alert.alert('Error', 'Something went wrong');
+    }
   };
+
   const statusBarHeight = StatusBar.currentHeight || 0;
+
   return (
     <SafeAreaView style={[styles.container, { paddingTop: statusBarHeight }]}>
       <View style={{ marginVertical: 22 }}>
@@ -64,12 +87,6 @@ const Login = () => {
         <Button
           title="Register"
           onPress={handleLogin}
-          filled
-          style={{
-            marginTop: 18,
-            marginBottom: 4,
-          }}
-        />
         <View
           style={{
             flexDirection: "row",

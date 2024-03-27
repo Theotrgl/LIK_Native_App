@@ -16,23 +16,43 @@ const Register = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  // const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleRegister = () => {
-    if (!username || !email || !password || !confirmPassword) {
+  const handleRegister = async () => {
+    if (!username || !email || !password ) {       //|| !confirmPassword) {
       Alert.alert("All fields are required");
       return;
     }
 
-    if (password !== confirmPassword) {
-      Alert.alert("Passwords do not match");
-      return;
-    }
+    // if (password !== confirmPassword) {
+    //   Alert.alert("Passwords do not match");
+    //   return;
+    // }
 
-    setUsername("");
-    setEmail("");
-    setPassword("");
-    setConfirmPassword("");
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/register_user/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: username,
+          email: email,
+          password: password,
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to register user');
+      }
+  
+      // Handle successful registration
+      Alert.alert('Success', 'User registered successfully');
+      // Clear input fields or navigate to login screen, etc.
+    } catch (error) {
+      console.error('Error:', error);
+      Alert.alert('Error', 'Failed to register user ');
+    }
   };
   const statusBarHeight = StatusBar.currentHeight || 0;
 
