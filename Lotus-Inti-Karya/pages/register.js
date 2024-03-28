@@ -18,10 +18,10 @@ const Register = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  // const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleRegister = async () => {
-    if (!username || !email || !password || !confirmPassword) {
+    if (!username || !email || !password ) {
       Alert.alert("All fields are required");
       return;
     }
@@ -106,7 +106,7 @@ const Register = () => {
           />
         </View>
 
-        <View style={{ marginBottom: 12 }}>
+        {/* <View style={{ marginBottom: 12 }}>
           <MyTextInput
             label="Konfirmasi Password:"
             icon="lock"
@@ -115,7 +115,7 @@ const Register = () => {
             onChangeText={setConfirmPassword}
             secureTextEntry={true}
           />
-        </View>
+        </View> */}
 
         <Button
           title="Register"

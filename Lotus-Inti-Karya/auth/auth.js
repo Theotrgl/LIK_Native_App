@@ -9,7 +9,7 @@ const storeToken = async (token) => {
     }
 };
 
-const retrieveToken = async () => {
+export const retrieveToken = async () => {
 try {
     const token = await AsyncStorage.getItem('authToken');
     if (token !== null) {

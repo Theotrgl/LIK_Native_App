@@ -6,6 +6,7 @@ import {
   Text,
   SafeAreaView,
   StatusBar,
+  Alert
 } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import COLORS from "../constants/colors";
@@ -47,16 +48,45 @@ LocaleConfig.locales["id"] = {
 LocaleConfig.defaultLocale = "id";
 
 const Form = () => {
-  const [plat, setPlat] = useState("");
+  const [plat, setPlat] = useState("BG ");
   const [driver, setDriver] = useState("");
   const [PO, setPO] = useState("");
   const [DO, setDO] = useState("");
-  const [no_tiket, setNoTiket] = useState("");
+  const [no_tiket, setNoTiket] = useState("I1900 731 ");
   const [berat, setBerat] = useState("");
   const [tanggal, setTanggal] = useState(new Date());
   const [reject, setReject] = useState("");
 
   const handleSubmit = async () => {
+    if (!plat || !driver || !PO || !DO || !no_tiket || !berat || !reject) {
+      Alert.alert('Error', 'Semua kolom harus diisi.');
+      return;
+    }
+
+    // VALIDATIONS
+    const platRegex = /^[A-Z]{1,2}\s{1}\d{1,4}\s{1}[A-Z]{1,3}$/;
+
+    if (!platRegex.test(plat)) {
+      Alert.alert('Error', 'Format plat nomor salah');
+      return;
+    }
+
+    const intRegex = /^\d+$/; // Regex to match integers
+
+    if ( !intRegex.test(DO) || !intRegex.test(berat) || !intRegex.test(reject)) {
+      Alert.alert('Error', 'DO, Berat, dan Reject harus berupa angka bulat tanpa tanda baca.');
+      return;
+    }
+
+    const poRegex = /^\d{2}\/\d{2}\/\d{4}$/; // Regex to match the format YY/MM/XXXX
+
+    if (!poRegex.test(PO)) {
+      Alert.alert('Error', 'Nomor PO harus dalam format YY/MM/XXXX. (Tahun/Bulan/NomorPO)');
+      return;
+    }
+
+    
+
     const d = tanggal.toISOString().slice(0, 10);
     const data = {
       plat,
@@ -125,6 +155,7 @@ const Form = () => {
               placeholder="XXX YYY"
               value={DO}
               onChangeText={setDO}
+              keyboardType={'numeric'}
             />
           </View>
           <View style={{ marginBottom: 12 }}>
@@ -138,11 +169,12 @@ const Form = () => {
           </View>
           <View style={{ marginBottom: 12 }}>
             <MyTextInput
-              label="Breat (Tonnase)(KG):"
+              label="Berat (Tonase)(KG):"
               icon="circle"
               placeholder="1000, 2000, ..."
               value={berat}
               onChangeText={setBerat}
+              keyboardType={"numeric"}
             />
           </View>
           <View style={{ marginBottom: 12 }}>
@@ -152,6 +184,7 @@ const Form = () => {
               placeholder="100, 200, ..."
               value={reject}
               onChangeText={setReject}
+              keyboardType={"numeric"}
             />
           </View>
           <View>

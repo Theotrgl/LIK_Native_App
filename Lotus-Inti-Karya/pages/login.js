@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,19 +6,33 @@ import {
   StatusBar,
   StyleSheet,
   Pressable,
+  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/core";
 import MyTextInput from "../components/InputField";
 import Button from "../components/Button";
 import COLORS from "../constants/colors";
+import { retrieveToken } from "../auth/auth";
 
 const Login = () => {
   const navigation = useNavigation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
+  useEffect(() => {
+    checkAuthenticationStatus();
+  }, []);
+
+  const checkAuthenticationStatus = async () => {
+    const token = await retrieveToken();
+    if (token) {
+      navigation.navigate("Form");
+    }
+    // navigation.navigate("Form")
+  };
+
   const handleLogin = async () => {
-    if (!username || !email) {
+    if (!username || !password) {
       Alert.alert("All fields are required");
       return;
     }
@@ -39,6 +53,7 @@ const Login = () => {
         const token = data.token;
         // Store token securely using authUtils storeToken function
         Alert.alert("Success", "Logged in successfully");
+        navigation.navigate("Form")
         // Handle navigation to next screen or other actions after successful login
       } else {
         Alert.alert("Error", "Invalid credentials");
