@@ -12,6 +12,7 @@ import { Calendar, LocaleConfig } from "react-native-calendars";
 import COLORS from "../constants/colors";
 import Button from "../components/Button";
 import MyTextInput from "../components/InputField";
+import axios from 'axios';
 
 LocaleConfig.locales["id"] = {
   monthNames: [
@@ -98,19 +99,22 @@ const Form = () => {
       tanggal: d,
       reject,
     };
-    const response = await fetch(
-      "http://127.0.0.1:8000/api/add_report_mobile/",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      }
-    );
-
-    const res = await response.json();
-    console.log(res);
+    try {
+      const response = await axios.post(
+        "http://192.168.1.23:8000/api/add_report_mobile/",
+        data,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+  
+      const res = response.data;
+      console.log(res);
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
   const statusBarHeight = StatusBar.currentHeight || 0;
 

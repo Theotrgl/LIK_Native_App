@@ -13,6 +13,7 @@ import MyTextInput from "../components/InputField";
 import Button from "../components/Button";
 import COLORS from "../constants/colors";
 import { retrieveToken } from "../auth/auth";
+import axios from 'axios';
 
 const Login = () => {
   const navigation = useNavigation();
@@ -37,19 +38,19 @@ const Login = () => {
       return;
     }
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/login_user/", {
-        method: "POST",
+
+      const response = await axios.post('http://127.0.0.1:8000/api/login_user/', {
+        username: username,
+        password: password
+      }, {
+
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          username: username,
-          password: password,
-        }),
       });
-
-      if (response.ok) {
-        const data = await response.json();
+  
+      if (response.status === 200) {
+        const data = response.data;
         const token = data.token;
         // Store token securely using authUtils storeToken function
         Alert.alert("Success", "Logged in successfully");
