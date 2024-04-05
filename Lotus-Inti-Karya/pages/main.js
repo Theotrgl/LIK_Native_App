@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ScrollView,
   View,
@@ -9,9 +9,12 @@ import {
   Alert
 } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
+import { useNavigation } from "@react-navigation/native";
+import LogoutButton from "../components/LogoutButton";
 import COLORS from "../constants/colors";
 import Button from "../components/Button";
 import MyTextInput from "../components/InputField";
+import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
 
 LocaleConfig.locales["id"] = {
@@ -57,7 +60,22 @@ const Form = () => {
   const [berat, setBerat] = useState("");
   const [tanggal, setTanggal] = useState(new Date());
   const [reject, setReject] = useState("");
+  const navigation = useNavigation();
 
+  useEffect(() => {
+    checkToken();
+  }, []);
+  const checkToken = async () => {
+    try {
+      const token = await SecureStore.getItemAsync('authToken');
+      if (!token) {
+        // Token does not exist, navigate to login screen
+        navigation.navigate('Login');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
   const handleSubmit = async () => {
     if (!plat || !driver || !PO || !DO || !no_tiket || !berat || !reject) {
       Alert.alert('Error', 'Semua kolom harus diisi.');
@@ -124,6 +142,10 @@ const Form = () => {
         contentContainerStyle={[styles.scrollContainer, { paddingBottom: 40 }]}
         style={{ width: "100%" }}
       >
+        <View style={{ alignItems: 'flex-end', marginRight: 10 }}>
+          <LogoutButton />
+        </View>
+
         <View style={styles.container}>
           <View style={{ marginBottom: 12 }}>
             <MyTextInput

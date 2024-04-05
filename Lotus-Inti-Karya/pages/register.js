@@ -85,6 +85,7 @@ const handleRegister = async () => {
           <MyTextInput
             label="Alamat Email:"
             icon="mail"
+            textContentType="emailAddress"
             placeholder="Masukkan Alamat Email"
             value={email}
             onChangeText={setEmail}
