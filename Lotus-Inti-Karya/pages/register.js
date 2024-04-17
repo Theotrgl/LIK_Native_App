@@ -12,7 +12,7 @@ import { useNavigation } from "@react-navigation/core";
 import COLORS from "../constants/colors";
 import Button from "../components/Button";
 import MyTextInput from "../components/InputField";
-import axios from 'axios';
+import axios from "axios";
 
 const Register = () => {
   const navigation = useNavigation();
@@ -21,37 +21,61 @@ const Register = () => {
   const [password, setPassword] = useState("");
   // const [confirmPassword, setConfirmPassword] = useState("");
 
+  const isValidEmail = (email) => {
+    // Regular expression pattern for validating email format
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailPattern.test(email);
+  };
 
+  const handlePasswordChange = (text) => {
+    // Check if the entered password meets the minimum length requirement
+    console.log(text.length);
+    if (text.length >= 6) {
+      setPassword(text); // Update the password state
+    }
+    else {
+      Alert.alert("Password must be at least 6 characters long")
+    }
+  };
 
-const handleRegister = async () => {
-  if (!username || !email || !password ) {
-    Alert.alert("All fields are required");
-    return;
-  }
+  const handleRegister = async () => {
+    if (!username || !email || !password) {
+      Alert.alert("All fields are required");
+      return;
+    }
 
-  try {
-    const response = await axios.post('http://192.168.1.49:8000/api/register_user/', {
-      username: username,
-      email: email,
-      password: password,
-    }, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    if (!isValidEmail(email)) {
+      Alert.alert("Invalid Email", "Please enter a valid email address");
+      return;
+    }
 
-    // if (response.status !== 200 || response.status !== 201) {
-    //   throw new Error('Failed to register user');
-    // }
+    try {
+      const response = await axios.post(
+        "http://192.168.1.49:8000/api/register_user/",
+        {
+          username: username,
+          email: email,
+          password: password,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-    // Handle successful registration
-    Alert.alert('Success', 'User registered successfully');
-    // Clear input fields or navigate to login screen, etc.
-  } catch (error) {
-    console.error('Error:', error);
-    Alert.alert('Error', 'Failed to register user ');
-  }
-};
+      // if (response.status !== 200 || response.status !== 201) {
+      //   throw new Error('Failed to register user');
+      // }
+
+      // Handle successful registration
+      Alert.alert("Success", "User registered successfully");
+      // Clear input fields or navigate to login screen, etc.
+    } catch (error) {
+      console.error("Error:", error);
+      Alert.alert("Error", "Failed to register user ");
+    }
+  };
 
   const statusBarHeight = StatusBar.currentHeight || 0;
 
@@ -99,7 +123,7 @@ const handleRegister = async () => {
             icon="lock"
             placeholder="Password"
             value={password}
-            onChangeText={setPassword}
+            onChangeText={handlePasswordChange}
             secureTextEntry={true}
           />
         </View>
