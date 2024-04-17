@@ -32,7 +32,19 @@ const Login = () => {
   //   }
   //   // navigation.navigate("Form")
   // };
-
+  useEffect(() => {
+    checkToken();
+  }, []);
+  const checkToken = async () => {
+    try {
+      const token = await SecureStore.getItemAsync('authToken');
+      if (token) {
+        navigation.navigate('Form');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
   const handleLogin = async () => {
     if (!username || !password) {
       Alert.alert("All fields are required");
