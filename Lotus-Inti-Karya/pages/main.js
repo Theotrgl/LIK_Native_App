@@ -119,7 +119,7 @@ const Form = () => {
     };
     try {
       const response = await axios.post(
-        "http://192.168.1.23:8000/api/add_report_mobile/",
+        "http://192.168.1.49:8000/api/add_report_mobile/",
         data,
         {
           headers: {

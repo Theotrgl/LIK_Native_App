@@ -21,9 +21,10 @@ const RootStack = () => {
           headerTintColor: COLORS.primary,
           headerTransparent: true,
           headerTitle: "",
+          headerLeft: null,
           headerLeftContainerStyle: { paddingLeft: 20 },
         }}
-        initialRouteName="Form"
+        initialRouteName="Login"
       >
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Register" component={Register} />

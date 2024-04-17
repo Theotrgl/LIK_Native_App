@@ -30,7 +30,7 @@ const handleRegister = async () => {
   }
 
   try {
-    const response = await axios.post('http://192.168.1.23:8000/api/register_user/', {
+    const response = await axios.post('http://192.168.1.49:8000/api/register_user/', {
       username: username,
       email: email,
       password: password,
