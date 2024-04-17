@@ -130,6 +130,10 @@ const Form = () => {
   
       const res = response.data;
       console.log(res);
+      if (response.status == 200){
+        Alert.alert("Sukses", "Data berhasil di simpan!");
+      }
+
     } catch (error) {
       console.error('Error:', error);
     }
