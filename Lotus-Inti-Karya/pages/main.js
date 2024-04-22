@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Picker } from "@react-native-picker/picker";
 import {
   ScrollView,
   View,
@@ -60,10 +61,19 @@ const Form = () => {
   const [berat, setBerat] = useState("");
   const [tanggal, setTanggal] = useState(new Date());
   const [reject, setReject] = useState("");
+  const [tujuan, setTujuan] = useState(null);
+  const [tujuanOpt, setTujuanOpt] = useState([]);
   const navigation = useNavigation();
 
   useEffect(() => {
     checkToken();
+    axios.get('http://192.168.1.49:8000/api/options/')
+    .then(response => {
+      setTujuanOpt(response.data);
+    })
+    .catch(error => {
+      console.error('Error fetching options:', error);
+    });
   }, []);
   const checkToken = async () => {
     try {
@@ -77,7 +87,7 @@ const Form = () => {
     }
   };
   const handleSubmit = async () => {
-    if (!plat || !driver || !PO || !DO || !no_tiket || !berat || !reject) {
+    if (!plat || !driver || !PO || !DO || !no_tiket || !berat || !reject || !tujuan) {
       Alert.alert('Error', 'Semua kolom harus diisi.');
       return;
     }
@@ -216,6 +226,25 @@ const Form = () => {
               onChangeText={setReject}
               keyboardType={"numeric"}
             />
+          </View>
+          <View>
+            <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "400",
+                  marginVertical: 8,
+                }}
+              >
+                Tujuan Pengiriman:
+              </Text>
+            <Picker
+              selectedValue={tujuan}
+              onValueChange={(itemValue, itemIndex) => setTujuan(itemValue)}
+            >
+              {tujuanOpt.map(option => (
+                <Picker.Item label={option.label} value={option.value} key={option.value} />
+              ))}
+            </Picker>
           </View>
           <View>
             <Text
