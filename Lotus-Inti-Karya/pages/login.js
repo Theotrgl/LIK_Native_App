@@ -65,6 +65,8 @@ const Login = () => {
       if (response.status === 200) {
         const data = response.data;
         const token = data.token;
+        const groupID = data.groups.toString();
+        await SecureStore.setItemAsync('GroupID', groupID);
         await SecureStore.setItemAsync('authToken', token);
         console.log(token)
         // Store token securely using authUtils storeToken function
