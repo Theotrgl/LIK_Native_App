@@ -9,7 +9,7 @@ const LogoutButton = () => {
   const handleLogout = async () => {
     try {
       // Get the authentication token from the storage (assuming you store it there)
-      const authToken = await SecureStore.getItemAsync("authToken"); // Replace 'YOUR_AUTH_TOKEN' with the actual token
+      const authToken = await SecureStore.getItemAsync('authToken');
       console.log(authToken);
       const response = await axios.post(
         "http://192.168.1.49:8000/api/logout_user/",

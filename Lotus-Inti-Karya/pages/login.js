@@ -32,7 +32,19 @@ const Login = () => {
   //   }
   //   // navigation.navigate("Form")
   // };
-
+  useEffect(() => {
+    checkToken();
+  }, []);
+  const checkToken = async () => {
+    try {
+      const token = await SecureStore.getItemAsync('authToken');
+      if (token) {
+        navigation.navigate('Form');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
   const handleLogin = async () => {
     if (!username || !password) {
       Alert.alert("All fields are required");
@@ -53,6 +65,8 @@ const Login = () => {
       if (response.status === 200) {
         const data = response.data;
         const token = data.token;
+        const groupID = data.groups.toString();
+        await SecureStore.setItemAsync('GroupID', groupID);
         await SecureStore.setItemAsync('authToken', token);
         console.log(token)
         // Store token securely using authUtils storeToken function

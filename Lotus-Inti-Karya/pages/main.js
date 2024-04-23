@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Picker } from "@react-native-picker/picker";
 import {
   ScrollView,
   View,
@@ -61,11 +62,49 @@ const Form = () => {
   const [berat, setBerat] = useState("");
   const [tanggal, setTanggal] = useState(new Date());
   const [reject, setReject] = useState("");
+  const [tujuan, setTujuan] = useState(null);
+  const [lokasi, setLokasi] = useState(null);
+  const [tujuanOpt, setTujuanOpt] = useState([]);
+  const [lokasiOpt, setLokasiOpt] = useState([]);
+  const [image, setImage] = useState(null);
   const navigation = useNavigation();
 
-  useEffect(() => {
-    checkToken();
-  }, []);
+  const fetchTujuanList = async () => {
+    try {
+      const groupID = await SecureStore.getItemAsync('GroupID');
+      console.log(groupID);
+      const response = await fetch(`http://192.168.1.49:8000/api/group/${groupID}/tujuan/`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch Lokasi data');
+      }
+      const data = await response.json();
+      // Now 'data' contains the Lokasi objects associated with the user's group
+      setTujuanOpt(data);
+      // Handle the data as needed in your React Native application
+    } catch (error) {
+      console.error('Error fetching Lokasi data:', error);
+      // Handle errors gracefully
+    }
+  };
+  
+  const fetchLokasiList = async () => {
+    try {
+      const groupID = await SecureStore.getItemAsync('GroupID');
+      console.log(groupID);
+      const response = await fetch(`http://192.168.1.49:8000/api/group/${groupID}/lokasi/`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch Lokasi data');
+      }
+      const data = await response.json();
+      // Now 'data' contains the Lokasi objects associated with the user's group
+      setLokasiOpt(data);
+      // Handle the data as needed in your React Native application
+    } catch (error) {
+      console.error('Error fetching Lokasi data:', error);
+      // Handle errors gracefully
+    }
+  };
+
   const checkToken = async () => {
     try {
       const token = await SecureStore.getItemAsync("authToken");
@@ -77,9 +116,17 @@ const Form = () => {
       console.error("Error:", error);
     }
   };
+  useEffect(() => {
+    checkToken();
+    fetchTujuanList();
+    fetchLokasiList();
+    
+  }, []);
+
   const handleSubmit = async () => {
-    if (!plat || !driver || !PO || !DO || !no_tiket || !berat || !reject) {
-      Alert.alert("Error", "Semua kolom harus diisi.");
+
+    if (!plat || !driver || !PO || !DO || !no_tiket || !berat || !reject || !tujuan || !lokasi) {
+      Alert.alert('Error', 'Semua kolom harus diisi.');
       return;
     }
 
@@ -131,6 +178,8 @@ const Form = () => {
       berat,
       tanggal: d,
       reject,
+      lokasi: lokasi ? lokasi.nama : null,
+      tujuan: tujuan ? tujuan.nama : null,
     };
     try {
       const response = await axios.post(
@@ -245,6 +294,49 @@ const Form = () => {
               keyboardType={"numeric"}
             />
           </View>
+          <View>
+            <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "400",
+                  marginVertical: 8,
+                }}
+              >
+                Lokasi Pemotongan:
+              </Text>
+              <Picker
+                selectedValue={lokasi}
+                onValueChange={(itemValue, itemIndex) => setLokasi(itemValue)}
+              >
+                <Picker.Item key="default" label="Pilih Lokasi Potong" value={null} />
+                {lokasiOpt.map((lokasi) => (
+                  <Picker.Item key={lokasi.id} label={lokasi.nama} value={lokasi} />
+                ))}
+              </Picker>
+          </View>
+
+          <View>
+            <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "400",
+                  marginVertical: 8,
+                }}
+              >
+                Tujuan Pengiriman:
+              </Text>
+              <Picker
+                selectedValue={tujuan}
+                onValueChange={(itemValue, itemIndex) => setTujuan(itemValue)}
+              >
+                <Picker.Item key="default" label="Pilih Pabrik Tujuan" value={null} />
+                {tujuanOpt.map((tujuan) => (
+                  <Picker.Item key={tujuan.id} label={tujuan.nama} value={tujuan} />
+                ))}
+              </Picker>
+              
+          </View>
+          
           <View>
             <Text
               style={{
