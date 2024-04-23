@@ -77,8 +77,26 @@ const Login = () => {
         Alert.alert("Error", "Invalid credentials");
       }
     } catch (error) {
-      console.error("Error:", error);
-      Alert.alert("Error", "Something went wrong");
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.log("Server responded with status code:", error.response.status);
+        if (error.response.status === 401) {
+          // Handle unauthorized (invalid credentials) error
+          Alert.alert("Error", "Invalid username or password");
+        } else {
+          // Handle other server errors
+          Alert.alert("Error", "Something went wrong with the server");
+        }
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.log("Request was made but no response received");
+        Alert.alert("Error", "No response from server");
+      } else {
+        // Something else happened in making the request
+        console.log("Error while making the request:", error.message);
+        Alert.alert("Error", "Something went wrong");
+      }
     }
   };
 

@@ -7,7 +7,7 @@ import {
   Text,
   SafeAreaView,
   StatusBar,
-  Alert
+  Alert,
 } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import { useNavigation } from "@react-navigation/native";
@@ -15,8 +15,9 @@ import LogoutButton from "../components/LogoutButton";
 import COLORS from "../constants/colors";
 import Button from "../components/Button";
 import MyTextInput from "../components/InputField";
-import * as SecureStore from 'expo-secure-store';
-import axios from 'axios';
+import * as SecureStore from "expo-secure-store";
+import axios from "axios";
+import Navbar from "../components/Navbar";
 
 LocaleConfig.locales["id"] = {
   monthNames: [
@@ -106,13 +107,13 @@ const Form = () => {
 
   const checkToken = async () => {
     try {
-      const token = await SecureStore.getItemAsync('authToken');
+      const token = await SecureStore.getItemAsync("authToken");
       if (!token) {
         // Token does not exist, navigate to login screen
-        navigation.navigate('Login');
+        navigation.navigate("Login");
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
     }
   };
   useEffect(() => {
@@ -123,6 +124,7 @@ const Form = () => {
   }, []);
 
   const handleSubmit = async () => {
+
     if (!plat || !driver || !PO || !DO || !no_tiket || !berat || !reject || !tujuan || !lokasi) {
       Alert.alert('Error', 'Semua kolom harus diisi.');
       return;
@@ -132,25 +134,39 @@ const Form = () => {
     const platRegex = /^[A-Z]{1,2}\s{1}\d{1,4}\s{1}[A-Z]{1,3}$/;
 
     if (!platRegex.test(plat)) {
-      Alert.alert('Error', 'Format plat nomor salah');
+      Alert.alert("Error", "Format plat nomor salah");
       return;
     }
 
     const intRegex = /^\d+$/; // Regex to match integers
 
-    if ( !intRegex.test(DO) || !intRegex.test(berat) || !intRegex.test(reject)) {
-      Alert.alert('Error', 'DO, Berat, dan Reject harus berupa angka bulat tanpa tanda baca.');
+    if (!intRegex.test(DO) || !intRegex.test(berat) || !intRegex.test(reject)) {
+      Alert.alert(
+        "Error",
+        "DO, Berat, dan Reject harus berupa angka bulat tanpa tanda baca."
+      );
       return;
     }
 
     const poRegex = /^\d{2}\/\d{2}\/\d{4}$/; // Regex to match the format YY/MM/XXXX
 
     if (!poRegex.test(PO)) {
-      Alert.alert('Error', 'Nomor PO harus dalam format YY/MM/XXXX. (Tahun/Bulan/NomorPO)');
+      Alert.alert(
+        "Error",
+        "Nomor PO harus dalam format YY/MM/XXXX. (Tahun/Bulan/NomorPO)"
+      );
       return;
     }
 
-    
+    const tiketRegex = /^[A-Z]\d{4} \d{3} \d{3}$/;
+
+    if (!tiketRegex.test(no_tiket)) {
+      Alert.alert(
+        "Error",
+        "Nomor Tiket harus dalam format Ixxxx xxx xxx. Contoh: I1900 731 123"
+      );
+      return;
+    }
 
     const d = tanggal.toISOString().slice(0, 10);
     const data = {
@@ -175,15 +191,30 @@ const Form = () => {
           },
         }
       );
-  
+
       const res = response.data;
       console.log(res);
       if (response.status == 200){
-        Alert.alert("Sukses", "Data berhasil di simpan!");
+        Alert.alert("Sukses", "Data berhasil di simpan!", [
+        {
+          text: "OK",
+          onPress: () => {
+            // Reset form fields
+            setPlat("BG ");
+            setDriver("");
+            setPO("");
+            setDO("");
+            setNoTiket("I1900 731 ");
+            setBerat("");
+            setTanggal(new Date());
+            setReject("");
+          },
+        },
+      ]);
       }
-
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
+      Alert.alert("Error", "Error, Mohon coba lagi nanti");
     }
   };
   const statusBarHeight = StatusBar.currentHeight || 0;
@@ -194,9 +225,7 @@ const Form = () => {
         contentContainerStyle={[styles.scrollContainer, { paddingBottom: 40 }]}
         style={{ width: "100%" }}
       >
-        <View style={{ alignItems: 'flex-end', marginRight: 10 }}>
-          <LogoutButton />
-        </View>
+        <Navbar />
 
         <View style={styles.container}>
           <View style={{ marginBottom: 12 }}>
@@ -233,7 +262,7 @@ const Form = () => {
               placeholder="XXX YYY"
               value={DO}
               onChangeText={setDO}
-              keyboardType={'numeric'}
+              keyboardType={"numeric"}
             />
           </View>
           <View style={{ marginBottom: 12 }}>
