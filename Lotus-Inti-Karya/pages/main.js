@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   StatusBar,
   Alert,
+  Image,
 } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import { useNavigation } from "@react-navigation/native";
@@ -18,6 +19,7 @@ import MyTextInput from "../components/InputField";
 import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 import Navbar from "../components/Navbar";
+import * as ImagePicker from 'expo-image-picker';
 
 LocaleConfig.locales["id"] = {
   monthNames: [
@@ -67,44 +69,79 @@ const Form = () => {
   const [tujuanOpt, setTujuanOpt] = useState([]);
   const [lokasiOpt, setLokasiOpt] = useState([]);
   const [image, setImage] = useState(null);
+  const [imageURI, setImageURI] = useState(null);
   const navigation = useNavigation();
 
+  // Image Processing Function 
+  const options = {
+    title: 'Select Image',
+      type: 'library',
+      options: {
+        maxHeight:100,
+        maxWidth:100,
+        selectionLimit: 1,
+        mediaType: 'photo',
+        includeBase64: false,
+      },
+  }
+  const GetImage = async() =>{
+    const images = await ImagePicker.launchImageLibraryAsync(options);
+    // console.log(images.assets[0]);
+    setImage(images);
+    setImageURI(images.assets[0].uri);
+  };
+
+  const GetImageCamera = async () => {
+    // Request camera permissions
+    const status = await ImagePicker.requestCameraPermissionsAsync();
+
+    // Check if permission is granted
+    if (status.granted === false) {
+        alert('Camera permission is required to take a picture.');
+        return;
+    }else{
+      // Permission granted, launch camera
+      const image = await ImagePicker.launchCameraAsync(options);
+      if (!image.canceled) {
+          // Image was captured successfully
+          setImage(image);
+          setImageURI(image.assets[0].uri);
+      }
+    }
+
+};
+  // Fetch Tujuan and Lokasi  from API
   const fetchTujuanList = async () => {
     try {
       const groupID = await SecureStore.getItemAsync('GroupID');
-      console.log(groupID);
+      // console.log(groupID);
       const response = await fetch(`http://192.168.1.49:8000/api/group/${groupID}/tujuan/`);
       if (!response.ok) {
         throw new Error('Failed to fetch Lokasi data');
       }
       const data = await response.json();
-      // Now 'data' contains the Lokasi objects associated with the user's group
       setTujuanOpt(data);
-      // Handle the data as needed in your React Native application
     } catch (error) {
       console.error('Error fetching Lokasi data:', error);
-      // Handle errors gracefully
     }
   };
   
   const fetchLokasiList = async () => {
     try {
       const groupID = await SecureStore.getItemAsync('GroupID');
-      console.log(groupID);
+      // console.log(groupID);
       const response = await fetch(`http://192.168.1.49:8000/api/group/${groupID}/lokasi/`);
       if (!response.ok) {
         throw new Error('Failed to fetch Lokasi data');
       }
       const data = await response.json();
-      // Now 'data' contains the Lokasi objects associated with the user's group
       setLokasiOpt(data);
-      // Handle the data as needed in your React Native application
     } catch (error) {
       console.error('Error fetching Lokasi data:', error);
-      // Handle errors gracefully
     }
   };
 
+  // Token State Check Function 
   const checkToken = async () => {
     try {
       const token = await SecureStore.getItemAsync("authToken");
@@ -125,13 +162,13 @@ const Form = () => {
 
   const handleSubmit = async () => {
 
-    if (!plat || !driver || !PO || !DO || !no_tiket || !berat || !reject || !tujuan || !lokasi) {
+    if (!plat || !driver || !PO || !DO || !no_tiket || !berat || !reject || !tujuan || !lokasi ) {
       Alert.alert('Error', 'Semua kolom harus diisi.');
       return;
     }
 
     // VALIDATIONS
-    const platRegex = /^[A-Z]{1,2}\s{1}\d{1,4}\s{1}[A-Z]{1,3}$/;
+    const platRegex = /^[A-Z]{1,2}\s{1}\d{1,4}\s{1}[A-Z]{1,3}$/i;
 
     if (!platRegex.test(plat)) {
       Alert.alert("Error", "Format plat nomor salah");
@@ -168,26 +205,32 @@ const Form = () => {
       return;
     }
 
+    // console.log(image);
     const d = tanggal.toISOString().slice(0, 10);
-    const data = {
-      plat,
-      driver,
-      PO,
-      DO,
-      no_tiket,
-      berat,
-      tanggal: d,
-      reject,
-      lokasi: lokasi ? lokasi.nama : null,
-      tujuan: tujuan ? tujuan.nama : null,
-    };
+    const formData = new FormData();
+      formData.append('plat', plat);
+      formData.append('driver', driver);
+      formData.append('PO', PO);
+      formData.append('DO', DO);
+      formData.append('no_tiket', no_tiket);
+      formData.append('berat', berat);
+      formData.append('tanggal', d);
+      formData.append('reject', reject);
+      formData.append('lokasi', lokasi ? lokasi.nama : null);
+      formData.append('tujuan', tujuan ? tujuan.nama : null);
+      formData.append('foto', {
+        uri: image.assets[0].uri,
+        type: image.assets[0].mimeType, 
+        name: image.assets[0].fileName,
+      });
+      console.log(formData)
     try {
       const response = await axios.post(
         "http://192.168.1.49:8000/api/add_report_mobile/",
-        data,
+        formData,
         {
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
           },
         }
       );
@@ -360,12 +403,22 @@ const Form = () => {
               theme={styles.calendarTheme}
             />
           </View>
+          <View>
+            <Button title="Pilih Foto" onPress={GetImage} />
+          </View>
+          <View>
+            <Button title="Buka Kamera" onPress={GetImageCamera} />
+          </View>
+          <View>
+            {image && <Image source={{ uri: imageURI}} style={{ width: 200, height: 200 }} />}
+          </View>
           <Button
             title="Submit"
             filled
             onPress={handleSubmit}
             style={{ marginTop: 22, width: "100%", maxWidth: 300 }}
           />
+
         </View>
       </ScrollView>
     </SafeAreaView>
