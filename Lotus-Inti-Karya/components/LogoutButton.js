@@ -12,7 +12,7 @@ const LogoutButton = () => {
       const authToken = await SecureStore.getItemAsync('authToken');
       console.log(authToken);
       const response = await axios.post(
-        "http://192.168.1.49:8000/api/logout_user/",
+        "http://192.168.1.42:8000/api/logout_user/",
         {},
         {
           headers: {

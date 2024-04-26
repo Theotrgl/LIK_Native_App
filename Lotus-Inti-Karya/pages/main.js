@@ -12,14 +12,14 @@ import {
 } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import { useNavigation } from "@react-navigation/native";
-import LogoutButton from "../components/LogoutButton";
 import COLORS from "../constants/colors";
 import Button from "../components/Button";
 import MyTextInput from "../components/InputField";
+import PickerInput from "../components/Picker";
 import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 import Navbar from "../components/Navbar";
-import * as ImagePicker from 'expo-image-picker';
+import * as ImagePicker from "expo-image-picker";
 
 LocaleConfig.locales["id"] = {
   monthNames: [
@@ -60,7 +60,7 @@ const Form = () => {
   const [driver, setDriver] = useState("");
   const [PO, setPO] = useState("");
   const [DO, setDO] = useState("");
-  const [no_tiket, setNoTiket] = useState("I1900 731 ");
+  const [no_tiket, setNoTiket] = useState("I1900 ");
   const [berat, setBerat] = useState("");
   const [tanggal, setTanggal] = useState(new Date());
   const [reject, setReject] = useState("");
@@ -70,21 +70,22 @@ const Form = () => {
   const [lokasiOpt, setLokasiOpt] = useState([]);
   const [image, setImage] = useState(null);
   const [imageURI, setImageURI] = useState(null);
+  const [dateAndTime, setDateAndTime] = useState(new Date());
   const navigation = useNavigation();
 
-  // Image Processing Function 
+  // Image Processing Function
   const options = {
-    title: 'Select Image',
-      type: 'library',
-      options: {
-        maxHeight:100,
-        maxWidth:100,
-        selectionLimit: 1,
-        mediaType: 'photo',
-        includeBase64: false,
-      },
-  }
-  const GetImage = async() =>{
+    title: "Select Image",
+    type: "library",
+    options: {
+      maxHeight: 100,
+      maxWidth: 100,
+      selectionLimit: 1,
+      mediaType: "photo",
+      includeBase64: false,
+    },
+  };
+  const GetImage = async () => {
     const images = await ImagePicker.launchImageLibraryAsync(options);
     // console.log(images.assets[0]);
     setImage(images);
@@ -97,51 +98,54 @@ const Form = () => {
 
     // Check if permission is granted
     if (status.granted === false) {
-        alert('Camera permission is required to take a picture.');
-        return;
-    }else{
+      alert("Camera permission is required to take a picture.");
+      return;
+    } else {
       // Permission granted, launch camera
       const image = await ImagePicker.launchCameraAsync(options);
       if (!image.canceled) {
-          // Image was captured successfully
-          setImage(image);
-          setImageURI(image.assets[0].uri);
+        // Image was captured successfully
+        setImage(image);
+        setImageURI(image.assets[0].uri);
       }
     }
-
-};
+  };
   // Fetch Tujuan and Lokasi  from API
   const fetchTujuanList = async () => {
     try {
-      const groupID = await SecureStore.getItemAsync('GroupID');
+      const groupID = await SecureStore.getItemAsync("GroupID");
       // console.log(groupID);
-      const response = await fetch(`http://192.168.1.49:8000/api/group/${groupID}/tujuan/`);
+      const response = await fetch(
+        `http://192.168.1.42:8000/api/group/${groupID}/tujuan/`
+      );
       if (!response.ok) {
-        throw new Error('Failed to fetch Lokasi data');
+        throw new Error("Failed to fetch Lokasi data");
       }
       const data = await response.json();
       setTujuanOpt(data);
     } catch (error) {
-      console.error('Error fetching Lokasi data:', error);
+      console.error("Error fetching Lokasi data:", error);
     }
   };
-  
+
   const fetchLokasiList = async () => {
     try {
-      const groupID = await SecureStore.getItemAsync('GroupID');
+      const groupID = await SecureStore.getItemAsync("GroupID");
       // console.log(groupID);
-      const response = await fetch(`http://192.168.1.49:8000/api/group/${groupID}/lokasi/`);
+      const response = await fetch(
+        `http://192.168.1.42:8000/api/group/${groupID}/lokasi/`
+      );
       if (!response.ok) {
-        throw new Error('Failed to fetch Lokasi data');
+        throw new Error("Failed to fetch Lokasi data");
       }
       const data = await response.json();
       setLokasiOpt(data);
     } catch (error) {
-      console.error('Error fetching Lokasi data:', error);
+      console.error("Error fetching Lokasi data:", error);
     }
   };
 
-  // Token State Check Function 
+  // Token State Check Function
   const checkToken = async () => {
     try {
       const token = await SecureStore.getItemAsync("authToken");
@@ -153,17 +157,33 @@ const Form = () => {
       console.error("Error:", error);
     }
   };
+
+  const checkDateAndTime = () => {
+    const currentDateAndTime = new Date();
+    setDateAndTime(currentDateAndTime.toISOString())
+    console.log(dateAndTime);
+  }
+
   useEffect(() => {
     checkToken();
     fetchTujuanList();
     fetchLokasiList();
-    
+    checkDateAndTime()
   }, []);
 
   const handleSubmit = async () => {
-
-    if (!plat || !driver || !PO || !DO || !no_tiket || !berat || !reject || !tujuan || !lokasi ) {
-      Alert.alert('Error', 'Semua kolom harus diisi.');
+    if (
+      !plat ||
+      !driver ||
+      !PO ||
+      !DO ||
+      !no_tiket ||
+      !berat ||
+      !reject ||
+      !tujuan ||
+      !lokasi
+    ) {
+      Alert.alert("Error", "Semua kolom harus diisi.");
       return;
     }
 
@@ -205,28 +225,32 @@ const Form = () => {
       return;
     }
 
+    const currentDateAndTime = new Date();
+    setDateAndTime(currentDateAndTime.toISOString());
+
     // console.log(image);
     const d = tanggal.toISOString().slice(0, 10);
     const formData = new FormData();
-      formData.append('plat', plat);
-      formData.append('driver', driver);
-      formData.append('PO', PO);
-      formData.append('DO', DO);
-      formData.append('no_tiket', no_tiket);
-      formData.append('berat', berat);
-      formData.append('tanggal', d);
-      formData.append('reject', reject);
-      formData.append('lokasi', lokasi ? lokasi.nama : null);
-      formData.append('tujuan', tujuan ? tujuan.nama : null);
-      formData.append('foto', {
-        uri: image.assets[0].uri,
-        type: image.assets[0].mimeType, 
-        name: image.assets[0].fileName,
-      });
-      console.log(formData)
+    formData.append("plat", plat);
+    formData.append("driver", driver);
+    formData.append("PO", PO);
+    formData.append("DO", DO);
+    formData.append("no_tiket", no_tiket);
+    formData.append("berat", berat);
+    formData.append("tanggal", d);
+    formData.append("reject", reject);
+    formData.append("lokasi", lokasi ? lokasi.nama : null);
+    formData.append("tujuan", tujuan ? tujuan.nama : null);
+    formData.append("foto", {
+      uri: image.assets[0].uri,
+      type: image.assets[0].mimeType,
+      name: image.assets[0].fileName,
+    });
+    formData.append("date_time", dateAndTime);
+    console.log(formData);
     try {
       const response = await axios.post(
-        "http://192.168.1.49:8000/api/add_report_mobile/",
+        "http://192.168.1.42:8000/api/add_report_mobile/",
         formData,
         {
           headers: {
@@ -237,23 +261,23 @@ const Form = () => {
 
       const res = response.data;
       console.log(res);
-      if (response.status == 200){
+      if (response.status == 200) {
         Alert.alert("Sukses", "Data berhasil di simpan!", [
-        {
-          text: "OK",
-          onPress: () => {
-            // Reset form fields
-            setPlat("BG ");
-            setDriver("");
-            setPO("");
-            setDO("");
-            setNoTiket("I1900 731 ");
-            setBerat("");
-            setTanggal(new Date());
-            setReject("");
+          {
+            text: "OK",
+            onPress: () => {
+              // Reset form fields
+              setPlat("BG ");
+              setDriver("");
+              setPO("");
+              setDO("");
+              setNoTiket("I1900 ");
+              setBerat("");
+              setTanggal(new Date());
+              setReject("");
+            },
           },
-        },
-      ]);
+        ]);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -337,49 +361,20 @@ const Form = () => {
               keyboardType={"numeric"}
             />
           </View>
-          <View>
-            <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "400",
-                  marginVertical: 8,
-                }}
-              >
-                Lokasi Pemotongan:
-              </Text>
-              <Picker
-                selectedValue={lokasi}
-                onValueChange={(itemValue, itemIndex) => setLokasi(itemValue)}
-              >
-                <Picker.Item key="default" label="Pilih Lokasi Potong" value={null} />
-                {lokasiOpt.map((lokasi) => (
-                  <Picker.Item key={lokasi.id} label={lokasi.nama} value={lokasi} />
-                ))}
-              </Picker>
-          </View>
 
           <View>
-            <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "400",
-                  marginVertical: 8,
-                }}
-              >
-                Tujuan Pengiriman:
-              </Text>
-              <Picker
-                selectedValue={tujuan}
-                onValueChange={(itemValue, itemIndex) => setTujuan(itemValue)}
-              >
-                <Picker.Item key="default" label="Pilih Pabrik Tujuan" value={null} />
-                {tujuanOpt.map((tujuan) => (
-                  <Picker.Item key={tujuan.id} label={tujuan.nama} value={tujuan} />
-                ))}
-              </Picker>
-              
+            <PickerInput
+              label="Lokasi Pemotongan"
+              data={lokasiOpt}
+              onSelect={setLokasi} // Pass the setter function to handle the selected value
+            />
+            <PickerInput
+              label="Tujuan Pengiriman"
+              data={tujuanOpt}
+              onSelect={setTujuan} // Pass the setter function to handle the selected value
+            />
           </View>
-          
+
           <View>
             <Text
               style={{
@@ -403,22 +398,40 @@ const Form = () => {
               theme={styles.calendarTheme}
             />
           </View>
-          <View>
-            <Button title="Pilih Foto" onPress={GetImage} />
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Pilih Foto"
+              filled
+              onPress={GetImage}
+              style={styles.buttonSideBySide}
+              color={COLORS.secondary}
+              borderColor={COLORS.secondary}
+              icon="image"
+            />
+            <Button
+              title="Buka Kamera"
+              filled
+              onPress={GetImageCamera}
+              style={styles.buttonSideBySide}
+              color={COLORS.success}
+              borderColor={COLORS.success}
+              icon="camera"
+            />
           </View>
           <View>
-            <Button title="Buka Kamera" onPress={GetImageCamera} />
-          </View>
-          <View>
-            {image && <Image source={{ uri: imageURI}} style={{ width: 200, height: 200 }} />}
+            {image && (
+              <Image
+                source={{ uri: imageURI }}
+                style={{ width: 200, height: 200 }}
+              />
+            )}
           </View>
           <Button
             title="Submit"
             filled
             onPress={handleSubmit}
-            style={{ marginTop: 22, width: "100%", maxWidth: 300 }}
+            style={{ marginTop: 12, width: "100%", maxWidth: 300 }}
           />
-
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -457,6 +470,16 @@ const styles = StyleSheet.create({
     selectedDotColor: COLORS.info,
     arrowColor: COLORS.primary,
     monthTextColor: COLORS.primary,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginHorizontal: 20, // Adjust as needed
+  },
+  buttonSideBySide: {
+    flex: 1, // Each button takes equal space
+    marginHorizontal: 5, // Adjust spacing between buttons
+    marginBottom: 12,
   },
 });
 
