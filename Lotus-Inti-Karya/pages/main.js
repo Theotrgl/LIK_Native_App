@@ -20,6 +20,7 @@ import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 import Navbar from "../components/Navbar";
 import * as ImagePicker from "expo-image-picker";
+import { API_BASE_URL } from "../constants";
 
 LocaleConfig.locales["id"] = {
   monthNames: [
@@ -116,7 +117,7 @@ const Form = () => {
       const groupID = await SecureStore.getItemAsync("GroupID");
       // console.log(groupID);
       const response = await fetch(
-        `http://192.168.1.42:8000/api/group/${groupID}/tujuan/`
+        (`${API_BASE_URL}/api/group/${groupID}/tujuan/`)
       );
       if (!response.ok) {
         throw new Error("Failed to fetch Lokasi data");
@@ -133,7 +134,7 @@ const Form = () => {
       const groupID = await SecureStore.getItemAsync("GroupID");
       // console.log(groupID);
       const response = await fetch(
-        `http://192.168.1.42:8000/api/group/${groupID}/lokasi/`
+        (`${API_BASE_URL}/api/group/${groupID}/lokasi/`)
       );
       if (!response.ok) {
         throw new Error("Failed to fetch Lokasi data");
@@ -250,7 +251,7 @@ const Form = () => {
     console.log(formData);
     try {
       const response = await axios.post(
-        "http://192.168.1.42:8000/api/add_report_mobile/",
+        (`${API_BASE_URL}/api/group/${groupID}/lokasi/`),
         formData,
         {
           headers: {

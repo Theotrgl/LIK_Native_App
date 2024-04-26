@@ -15,6 +15,7 @@ import COLORS from "../constants/colors";
 // import { retrieveToken } from "../auth/auth";
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
+import { API_BASE_URL } from "../constants";
 
 const Login = () => {
   const navigation = useNavigation();
@@ -52,7 +53,7 @@ const Login = () => {
     }
     try {
 
-      const response = await axios.post('http://192.168.1.42:8000/api/login_user/', {
+      const response = await axios.post((`${API_BASE_URL}/api/login_user/`),{
         username: username,
         password: password
       }, {

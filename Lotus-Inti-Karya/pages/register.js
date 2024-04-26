@@ -13,6 +13,7 @@ import COLORS from "../constants/colors";
 import Button from "../components/Button";
 import MyTextInput from "../components/InputField";
 import axios from "axios";
+import { API_BASE_URL } from "../constants";
 
 const Register = () => {
   const navigation = useNavigation();
@@ -51,7 +52,7 @@ const Register = () => {
 
     try {
       const response = await axios.post(
-        "http://192.168.1.4:8000/api/register_user/",
+        (`${API_BASE_URL}/api/register_user/`),
         {
           username: username,
           email: email,

@@ -3,6 +3,7 @@ import { View, TouchableOpacity, Text, Alert, StyleSheet } from "react-native";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import { useNavigation } from "@react-navigation/native";
+import { API_BASE_URL } from "../constants";
 
 const LogoutButton = () => {
   const navigation = useNavigation();
@@ -12,7 +13,7 @@ const LogoutButton = () => {
       const authToken = await SecureStore.getItemAsync('authToken');
       console.log(authToken);
       const response = await axios.post(
-        "http://192.168.1.42:8000/api/logout_user/",
+        `${API_BASE_URL}/api/logout/user/`,
         {},
         {
           headers: {
