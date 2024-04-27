@@ -9,6 +9,7 @@ import {
   StatusBar,
   Alert,
   Image,
+  BackHandler
 } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import { useNavigation } from "@react-navigation/native";
@@ -162,7 +163,7 @@ const Form = () => {
   const checkDateAndTime = () => {
     const currentDateAndTime = new Date();
     setDateAndTime(currentDateAndTime.toISOString())
-    console.log(dateAndTime);
+    // console.log(dateAndTime);
   }
 
   useEffect(() => {
@@ -170,6 +171,8 @@ const Form = () => {
     fetchTujuanList();
     fetchLokasiList();
     checkDateAndTime()
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => true)
+    return () => backHandler.remove()
   }, []);
 
   const handleSubmit = async () => {
@@ -248,10 +251,10 @@ const Form = () => {
       name: image.assets[0].fileName,
     });
     formData.append("date_time", dateAndTime);
-    console.log(formData);
+    // console.log(formData);
     try {
       const response = await axios.post(
-        (`${API_BASE_URL}/api/group/${groupID}/lokasi/`),
+        (`${API_BASE_URL}/api/add_report_mobile/`),
         formData,
         {
           headers: {
@@ -260,9 +263,9 @@ const Form = () => {
         }
       );
 
-      const res = response.data;
-      console.log(res);
-      if (response.status == 200) {
+      const res = response.status;
+      console.log("response =" + res);
+      if (response.status == 201 || res == 200) {
         Alert.alert("Sukses", "Data berhasil di simpan!", [
           {
             text: "OK",
@@ -276,6 +279,10 @@ const Form = () => {
               setBerat("");
               setTanggal(new Date());
               setReject("");
+              setTujuan(null);
+              setLokasi(null);
+              setImage(null);
+              setDateAndTime(new Date());
             },
           },
         ]);
@@ -344,7 +351,7 @@ const Form = () => {
           </View>
           <View style={{ marginBottom: 12 }}>
             <MyTextInput
-              label="Berat (Tonase)(KG):"
+              label="Berat (KG):"
               icon="circle"
               placeholder="1000, 2000, ..."
               value={berat}
@@ -429,7 +436,6 @@ const Form = () => {
           </View>
           <Button
             title="Submit"
-            filled
             onPress={handleSubmit}
             style={{ marginTop: 12, width: "100%", maxWidth: 300 }}
           />

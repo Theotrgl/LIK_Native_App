@@ -27,7 +27,7 @@ const RootStack = () => {
         initialRouteName="Login"
       >
         <Stack.Screen name="Login" component={Login} />
-        <Stack.Screen name="Register" component={Register} />
+        {/* <Stack.Screen name="Register" component={Register} /> */}
         <Stack.Screen name="Form" component={Form} />
       </Stack.Navigator>
     </NavigationContainer>

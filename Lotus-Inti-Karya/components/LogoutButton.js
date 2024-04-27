@@ -13,7 +13,7 @@ const LogoutButton = () => {
       const authToken = await SecureStore.getItemAsync('authToken');
       console.log(authToken);
       const response = await axios.post(
-        `${API_BASE_URL}/api/logout/user/`,
+        `${API_BASE_URL}/api/logout_user/`,
         {},
         {
           headers: {

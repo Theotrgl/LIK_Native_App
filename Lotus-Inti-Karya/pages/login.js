@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Pressable,
   Alert,
+  BackHandler
 } from "react-native";
 import { useNavigation } from "@react-navigation/core";
 import MyTextInput from "../components/InputField";
@@ -22,19 +23,10 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  // useEffect(() => {
-  //   checkAuthenticationStatus();
-  // }, []);
-
-  // const checkAuthenticationStatus = async () => {
-  //   const token = await retrieveToken();
-  //   if (token) {
-  //     navigation.navigate("Form");
-  //   }
-  //   // navigation.navigate("Form")
-  // };
   useEffect(() => {
     checkToken();
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => true)
+    return () => backHandler.remove()
   }, []);
   const checkToken = async () => {
     try {
@@ -63,7 +55,7 @@ const Login = () => {
         },
       });
   
-      if (response.status === 200) {
+      if (response.status === 200 || response.status === 201) {
         const data = response.data;
         const token = data.token;
         const groupID = data.groups.toString();
@@ -72,6 +64,8 @@ const Login = () => {
         console.log(token)
         // Store token securely using authUtils storeToken function
         Alert.alert("Success", "Logged in successfully");
+        setPassword("");
+        setUsername("");
         navigation.navigate("Form")
         // Handle navigation to next screen or other actions after successful login
       } else {
@@ -138,12 +132,12 @@ const Login = () => {
           />
         </View>
         <Button
-          title="Login"
+          title="Masuk"
           onPress={handleLogin}
           filled
           style={{ marginTop: 18, marginBottom: 4 }}
         />
-        <View
+        {/* <View
           style={{
             flexDirection: "row",
             justifyContent: "center",
@@ -165,7 +159,7 @@ const Login = () => {
               Register
             </Text>
           </Pressable>
-        </View>
+        </View> */}
       </View>
     </SafeAreaView>
   );
