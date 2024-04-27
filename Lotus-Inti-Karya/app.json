@@ -5,6 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "minify": true,
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/liksplash.png",
@@ -33,7 +34,9 @@
         "expo-build-properties",
         {
           "android": {
-            "usesCleartextTraffic":true
+            "usesCleartextTraffic":true,
+            "enableProguardInReleaseBuilds":true,
+            "enableShrinkResourcesInReleaseBuilds" :true
           }
         }
       ]
