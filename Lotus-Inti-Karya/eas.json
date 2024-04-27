@@ -2,10 +2,16 @@
   "build": {
     "preview": {
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "distribution" : "internal"
       }
     },
-    "production": {}
+    "production": {
+      "android": {
+        "buildType": "apk",
+        "distribution" : "internal"
+      }
+    }
   },
   "cli": {
     "version": ">= 0.52.0"
