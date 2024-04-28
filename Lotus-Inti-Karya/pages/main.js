@@ -100,7 +100,7 @@ const Form = () => {
 
     // Check if permission is granted
     if (status.granted === false) {
-      alert("Camera permission is required to take a picture.");
+      alert("Dibutuhkan akses kamera untuk fitur ini");
       return;
     } else {
       // Permission granted, launch camera
@@ -151,9 +151,35 @@ const Form = () => {
   const checkToken = async () => {
     try {
       const token = await SecureStore.getItemAsync("authToken");
+      
       if (!token) {
         // Token does not exist, navigate to login screen
         navigation.navigate("Login");
+      } else {
+        // Token exists, check with server
+        const user_id = await SecureStore.getItemAsync("User");
+        
+        const response = await axios.get(`${API_BASE_URL}/api/check_token/${user_id}/`);
+        
+        if (response.status === 200) {
+          const userToken = response.data.token;
+          if (userToken !== token) {
+            // Token from server does not match token from SecureStore
+            // Delete token from SecureStore and navigate to login screen
+            await SecureStore.deleteItemAsync("authToken");
+            Alert.alert('Masa Token Habis', 'Dimohon Untuk Login Kembali!');
+            navigation.navigate("Login");
+          } else {
+          }
+        } else if (response.status === 404) {
+          // Token not found for the user, delete token from SecureStore and navigate to login screen
+          await SecureStore.deleteItemAsync("authToken");
+          Alert.alert('Masa Token Habis', 'Dimohon Untuk Login Kembali!');
+          navigation.navigate("Login");
+        } else {
+          // Handle other error statuses
+          console.log("Error:", response.data);
+        }
       }
     } catch (error) {
       console.error("Error:", error);
@@ -170,12 +196,13 @@ const Form = () => {
     checkToken();
     fetchTujuanList();
     fetchLokasiList();
-    checkDateAndTime()
+    checkDateAndTime();
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => true)
     return () => backHandler.remove()
   }, []);
 
   const handleSubmit = async () => {
+    const userID = await SecureStore.getItemAsync("User");
     if (
       !plat ||
       !driver ||
@@ -251,6 +278,7 @@ const Form = () => {
       name: image.assets[0].fileName,
     });
     formData.append("date_time", dateAndTime);
+    formData.append("sender", userID);
     // console.log(formData);
     try {
       const response = await axios.post(
@@ -351,7 +379,7 @@ const Form = () => {
           </View>
           <View style={{ marginBottom: 12 }}>
             <MyTextInput
-              label="Berat (KG):"
+              label="Berat Netto (KG):"
               icon="circle"
               placeholder="1000, 2000, ..."
               value={berat}

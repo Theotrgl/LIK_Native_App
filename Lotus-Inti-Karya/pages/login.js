@@ -40,7 +40,7 @@ const Login = () => {
   };
   const handleLogin = async () => {
     if (!username || !password) {
-      Alert.alert("All fields are required");
+      Alert.alert("Semua Kolom Wajib Di isi!");
       return;
     }
     try {
@@ -59,17 +59,19 @@ const Login = () => {
         const data = response.data;
         const token = data.token;
         const groupID = data.groups.toString();
+        const userID = data.user.id.toString();
+        await SecureStore.setItemAsync('User', userID);
         await SecureStore.setItemAsync('GroupID', groupID);
         await SecureStore.setItemAsync('authToken', token);
         console.log(token)
         // Store token securely using authUtils storeToken function
-        Alert.alert("Success", "Logged in successfully");
+        Alert.alert("Sukses", "Berhasil Masuk");
         setPassword("");
         setUsername("");
         navigation.navigate("Form")
         // Handle navigation to next screen or other actions after successful login
       } else {
-        Alert.alert("Error", "Invalid credentials");
+        Alert.alert("Error", "Akun Tidak Terdaftar");
       }
     } catch (error) {
       if (error.response) {
@@ -78,19 +80,19 @@ const Login = () => {
         console.log("Server responded with status code:", error.response.status);
         if (error.response.status === 401) {
           // Handle unauthorized (invalid credentials) error
-          Alert.alert("Error", "Invalid username or password");
+          Alert.alert("Error", "Username atau Password Salah");
         } else {
           // Handle other server errors
-          Alert.alert("Error", "Something went wrong with the server");
+          Alert.alert("Error", "Ada masalah dengan server");
         }
       } else if (error.request) {
         // The request was made but no response was received
         console.log("Request was made but no response received");
-        Alert.alert("Error", "No response from server");
+        Alert.alert("Error", "Tidak ada respons dari server");
       } else {
         // Something else happened in making the request
         console.log("Error while making the request:", error.message);
-        Alert.alert("Error", "Something went wrong");
+        Alert.alert("Error", "Terjadi error");
       }
     }
   };

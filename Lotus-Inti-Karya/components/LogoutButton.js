@@ -33,14 +33,14 @@ const LogoutButton = () => {
         } else {
           console.log("Token Deleted Successfully");
         }
-        Alert.alert("Logout Successful");
+        Alert.alert("Berhasil Keluar");
         // Perform navigation to login screen or any other action after logout
       } else {
-        Alert.alert("Logout Failed");
+        Alert.alert("Gagal Keluar");
       }
     } catch (error) {
       console.error("Error:", error);
-      Alert.alert("An error occurred while logging out");
+      Alert.alert("Terjadi Error Ketika Keluar");
     }
   };
 
