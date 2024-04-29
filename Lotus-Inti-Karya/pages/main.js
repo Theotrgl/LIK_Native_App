@@ -73,6 +73,7 @@ const Form = () => {
   const [image, setImage] = useState(null);
   const [imageURI, setImageURI] = useState(null);
   const [dateAndTime, setDateAndTime] = useState(new Date());
+  const [formSubmitted, setFormSubmitted] = useState(false);
   const navigation = useNavigation();
 
   // Image Processing Function
@@ -197,9 +198,11 @@ const Form = () => {
     fetchTujuanList();
     fetchLokasiList();
     checkDateAndTime();
+    console.log("Test");
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => true)
     return () => backHandler.remove()
-  }, []);
+    setFormSubmitted(false);
+  }, [formSubmitted]);
 
   const handleSubmit = async () => {
     const userID = await SecureStore.getItemAsync("User");
@@ -311,11 +314,14 @@ const Form = () => {
               setLokasi(null);
               setImage(null);
               setDateAndTime(new Date());
+
+              setFormSubmitted(true);
             },
           },
         ]);
       }
     } catch (error) {
+      checkToken();
       console.error("Error:", error);
       Alert.alert("Error", "Error, Mohon coba lagi nanti");
     }
@@ -463,7 +469,7 @@ const Form = () => {
             )}
           </View>
           <Button
-            title="Submit"
+            title="Kirim"
             onPress={handleSubmit}
             style={{ marginTop: 12, width: "100%", maxWidth: 300 }}
           />
