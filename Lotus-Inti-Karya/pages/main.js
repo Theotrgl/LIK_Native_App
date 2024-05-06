@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Picker } from "@react-native-picker/picker";
 import {
   ScrollView,
   View,
@@ -9,7 +8,9 @@ import {
   StatusBar,
   Alert,
   Image,
-  BackHandler
+  BackHandler,
+  RefreshControl,
+  ActivityIndicator
 } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import { useNavigation } from "@react-navigation/native";
@@ -68,12 +69,16 @@ const Form = () => {
   const [reject, setReject] = useState("");
   const [tujuan, setTujuan] = useState(null);
   const [lokasi, setLokasi] = useState(null);
+  const [kayu, setKayu] = useState(null);
   const [tujuanOpt, setTujuanOpt] = useState([]);
   const [lokasiOpt, setLokasiOpt] = useState([]);
+  const [kayuOpt, setKayuOpt] = useState([]);
   const [image, setImage] = useState(null);
   const [imageURI, setImageURI] = useState(null);
   const [dateAndTime, setDateAndTime] = useState(new Date());
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
 
   // Image Processing Function
@@ -148,6 +153,23 @@ const Form = () => {
     }
   };
 
+  const fetchKayuList = async () => {
+    try {
+      const groupID = await SecureStore.getItemAsync("GroupID");
+      // console.log(groupID);
+      const response = await fetch(
+        (`${API_BASE_URL}/api/group/${groupID}/kayu/`)
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch Lokasi data");
+      }
+      const data = await response.json();
+      setKayuOpt(data);
+    } catch (error) {
+      console.error("Error fetching Lokasi data:", error);
+    }
+  };
+
   // Token State Check Function
   const checkToken = async () => {
     try {
@@ -192,17 +214,37 @@ const Form = () => {
     setDateAndTime(currentDateAndTime.toISOString())
     // console.log(dateAndTime);
   }
+  const handleRefresh = () => {
+    setPlat("BG ");
+    setDriver("");
+    setPO("");
+    setDO("");
+    setNoTiket("I1900 ");
+    setBerat("");
+    setTanggal(new Date());
+    setReject("");
+    setTujuan(null);
+    setLokasi(null);
+    setKayu(null);
+    setImage(null);
+    setDateAndTime(new Date());
+    console.log("Refreshing1: ",refreshing);
+    setRefreshing(true);
+  };
 
   useEffect(() => {
     checkToken();
     fetchTujuanList();
     fetchLokasiList();
+    fetchKayuList();
     checkDateAndTime();
-    console.log("Test");
+    setFormSubmitted(false);
+    setRefreshing(false);
+    console.log("Refreshing: ",refreshing);
+    console.log("formSubmitted1: ",formSubmitted);
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => true)
     return () => backHandler.remove()
-    setFormSubmitted(false);
-  }, [formSubmitted]);
+  }, [formSubmitted, refreshing]);
 
   const handleSubmit = async () => {
     const userID = await SecureStore.getItemAsync("User");
@@ -215,7 +257,8 @@ const Form = () => {
       !berat ||
       !reject ||
       !tujuan ||
-      !lokasi
+      !lokasi||
+      !kayu
     ) {
       Alert.alert("Error", "Semua kolom harus diisi.");
       return;
@@ -275,6 +318,7 @@ const Form = () => {
     formData.append("reject", reject);
     formData.append("lokasi", lokasi ? lokasi.nama : null);
     formData.append("tujuan", tujuan ? tujuan.nama : null);
+    formData.append("kayu", kayu ? kayu.nama : null);
     formData.append("foto", {
       uri: image.assets[0].uri,
       type: image.assets[0].mimeType,
@@ -283,6 +327,7 @@ const Form = () => {
     formData.append("date_time", dateAndTime);
     formData.append("sender", userID);
     // console.log(formData);
+    setLoading(true);
     try {
       const response = await axios.post(
         (`${API_BASE_URL}/api/add_report_mobile/`),
@@ -293,37 +338,42 @@ const Form = () => {
           },
         }
       );
+      // Reset form fields
+      setPlat("BG ");
+      setDriver("");
+      setPO("");
+      setDO("");
+      setNoTiket("I1900 ");
+      setBerat("");
+      setTanggal(new Date());
+      setReject("");
+      setTujuan(null);
+      setLokasi(null);
+      setKayu(null);
+      setImage(null);
+      setDateAndTime(new Date());
 
-      const res = response.status;
-      console.log("response =" + res);
+      
+      // const res = response.status;
+      // console.log("response =" + res);
       if (response.status == 201 || res == 200) {
         Alert.alert("Sukses", "Data berhasil di simpan!", [
-          {
-            text: "OK",
-            onPress: () => {
-              // Reset form fields
-              setPlat("BG ");
-              setDriver("");
-              setPO("");
-              setDO("");
-              setNoTiket("I1900 ");
-              setBerat("");
-              setTanggal(new Date());
-              setReject("");
-              setTujuan(null);
-              setLokasi(null);
-              setImage(null);
-              setDateAndTime(new Date());
-
-              setFormSubmitted(true);
-            },
+          {text: "OK",
+          onPress: () => {
+          setFormSubmitted(true);
           },
-        ]);
+        },
+      ]
+    );
+    console.log("formSubmitted: ", formSubmitted);
       }
     } catch (error) {
       checkToken();
+      setRefreshing(true)
       console.error("Error:", error);
       Alert.alert("Error", "Error, Mohon coba lagi nanti");
+    } finally {
+      setLoading(false);
     }
   };
   const statusBarHeight = StatusBar.currentHeight || 0;
@@ -333,6 +383,14 @@ const Form = () => {
       <ScrollView
         contentContainerStyle={[styles.scrollContainer, { paddingBottom: 40 }]}
         style={{ width: "100%" }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={['#9Bd35A', '#689F38']}
+            // You can also set other props like progressBackgroundColor, size, etc.
+          />
+        }
       >
         <Navbar />
 
@@ -406,6 +464,11 @@ const Form = () => {
 
           <View>
             <PickerInput
+              label="Jenis Kayu"
+              data={kayuOpt}
+              onSelect={setKayu} // Pass the setter function to handle the selected value
+            />
+            <PickerInput
               label="Lokasi Pemotongan"
               data={lokasiOpt}
               onSelect={setLokasi} // Pass the setter function to handle the selected value
@@ -468,11 +531,14 @@ const Form = () => {
               />
             )}
           </View>
-          <Button
-            title="Kirim"
-            onPress={handleSubmit}
-            style={{ marginTop: 12, width: "100%", maxWidth: 300 }}
-          />
+          {!loading && (
+            <Button
+              title="Kirim"
+              onPress={handleSubmit}
+              style={{ marginTop: 12, width: "100%", maxWidth: 300 }}
+            />
+          )}
+      <Text>{loading && <ActivityIndicator style={{ marginTop: 20 }} />}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
