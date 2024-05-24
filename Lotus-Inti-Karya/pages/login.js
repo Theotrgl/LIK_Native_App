@@ -32,7 +32,7 @@ const Login = () => {
     try {
       const token = await SecureStore.getItemAsync('authToken');
       if (token) {
-        navigation.navigate('Form');
+        navigation.navigate('Main');
       }
     } catch (error) {
       console.error('Error:', error);
@@ -68,7 +68,7 @@ const Login = () => {
         Alert.alert("Sukses", "Berhasil Masuk");
         setPassword("");
         setUsername("");
-        navigation.navigate("Summary")
+        navigation.navigate("Main")
         // Handle navigation to next screen or other actions after successful login
       } else {
         Alert.alert("Error", "Akun Tidak Terdaftar");

@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Image, TouchableOpacity, StyleSheet } from "react-native";
 import LogoutButton from "./LogoutButton"; // Assuming LogoutButton component is in the same directory
+import COLORS from "../constants/colors";
 
 const Navbar = () => {
   return (
@@ -24,7 +25,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 8,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
     width: "100%",
