@@ -68,7 +68,7 @@ const Login = () => {
         Alert.alert("Sukses", "Berhasil Masuk");
         setPassword("");
         setUsername("");
-        navigation.navigate("Form")
+        navigation.navigate("Summary")
         // Handle navigation to next screen or other actions after successful login
       } else {
         Alert.alert("Error", "Akun Tidak Terdaftar");

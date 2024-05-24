@@ -6,6 +6,7 @@ import Login from "../pages/login";
 import Register from "../pages/register";
 import Form from "../pages/main";
 import COLORS from "../constants/colors";
+import ReportSummary from "../pages/summary";
 
 const Stack = createStackNavigator();
 
@@ -27,7 +28,7 @@ const RootStack = () => {
         initialRouteName="Login"
       >
         <Stack.Screen name="Login" component={Login} />
-        {/* <Stack.Screen name="Register" component={Register} /> */}
+        <Stack.Screen name="Summary" component={ReportSummary} />
         <Stack.Screen name="Form" component={Form} />
       </Stack.Navigator>
     </NavigationContainer>
