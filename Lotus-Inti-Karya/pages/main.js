@@ -10,7 +10,8 @@ import {
   Image,
   BackHandler,
   RefreshControl,
-  ActivityIndicator
+  ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import { useNavigation } from "@react-navigation/native";
@@ -246,6 +247,11 @@ const Form = () => {
     return () => backHandler.remove()
   }, [formSubmitted, refreshing]);
 
+  const goToSummaryPage = () => {
+    checkToken();
+    navigation.navigate('Summary'); // Navigate to the 'Form' page
+  };
+
   const handleSubmit = async () => {
     const userID = await SecureStore.getItemAsync("User");
     if (
@@ -393,7 +399,9 @@ const Form = () => {
         }
       >
         <Navbar />
-
+        <TouchableOpacity onPress={goToSummaryPage}>
+          <Text style={{ fontSize: 18, color: 'blue' }}>Lihat Sejarah Input</Text>
+        </TouchableOpacity>
         <View style={styles.container}>
           <View style={{ marginBottom: 12 }}>
             <MyTextInput
