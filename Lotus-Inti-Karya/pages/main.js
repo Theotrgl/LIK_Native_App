@@ -19,6 +19,7 @@ import COLORS from "../constants/colors";
 import Button from "../components/Button";
 import MyTextInput from "../components/InputField";
 import PickerInput from "../components/Picker";
+import { Picker } from '@react-native-picker/picker';
 import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 import Navbar from "../components/Navbar";
@@ -80,6 +81,8 @@ const Form = () => {
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [regexTiket, setRegexTiket] = useState(/.*/);
+  const [regexPO, setRegexPO] = useState(/.*/);
   const navigation = useNavigation();
 
   // Image Processing Function
@@ -241,11 +244,34 @@ const Form = () => {
     checkDateAndTime();
     setFormSubmitted(false);
     setRefreshing(false);
-    console.log("Refreshing: ",refreshing);
-    console.log("formSubmitted1: ",formSubmitted);
+    // console.log("Refreshing: ",refreshing);
+    // console.log("formSubmitted1: ",formSubmitted);
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => true)
     return () => backHandler.remove()
   }, [formSubmitted, refreshing]);
+
+  useEffect(() => {
+    if (tujuan && tujuan.nama) {
+      switch (tujuan.nama) {
+        case 'Sumatra Prima Fiberboard':
+          setRegexTiket(/^[A-Z]\d{4} \d{3} \d{3}$/);
+          setRegexPO(/^\d{2}\/\d{2}\/\d{4}$/);
+          break;
+        case 'Cipta Mandala':
+          setRegexTiket(/^\d{6}$/);
+          setRegexPO(/^\d{6}$/);
+          break;
+        case 'Hijau Lestari':
+          setRegexTiket(/^[a-zA-Z]+$/);
+          setRegexPO(/^[a-zA-Z]+$/);
+          break;
+        default:
+          setRegexTiket(/^[A-Z]\d{4} \d{3} \d{3}$/); // Default regex pattern for Tiket
+          setRegexPO(/^\d{2}\/\d{2}\/\d{4}$/);      // Default regex pattern for PO
+      }
+    }
+  }, [tujuan]);
+  
 
   const goToSummaryPage = () => {
     checkToken();
@@ -253,6 +279,7 @@ const Form = () => {
   };
 
   const handleSubmit = async () => {
+    checkToken();
     const userID = await SecureStore.getItemAsync("User");
     if (
       !plat ||
@@ -269,8 +296,57 @@ const Form = () => {
       Alert.alert("Error", "Semua kolom harus diisi.");
       return;
     }
-
+    console.log(no_tiket);
     // VALIDATIONS
+    if (tujuan && tujuan.nama) {
+      console.log(tujuan);
+      console.log(tujuan.nama);
+    
+      // Set regex patterns based on tujuan.nama
+      switch (tujuan.nama) {
+        case 'Sumatra Prima Fiberboard':
+          setRegexTiket(/^[A-Z]\d{4} \d{3} \d{3}$/);
+          setRegexPO(/^\d{2}\/\d{2}\/\d{4}$/);
+          break;
+        case 'Cipta Mandala':
+          setRegexTiket(/^\d{6}$/);
+          setRegexPO(/^\d+$/);
+          break;
+        case 'Hijau Lestari':
+          setRegexTiket(/^[a-zA-Z]+$/);
+          setRegexPO(/^[a-zA-Z]+$/);
+          break;
+        default:
+          setRegexTiket(/^[A-Z]\d{4} \d{3} \d{3}$/); // Default regex pattern for Tiket
+          setRegexPO(/^\d{2}\/\d{2}\/\d{4}$/);      // Default regex pattern for PO
+      }
+      console.log("RegexPO:", regexPO);
+      console.log("RegexTiket:",regexTiket);
+    
+      // Validate the Tiket input
+      if (!regexTiket.test(no_tiket)) {
+        setNoTiket('');
+        Alert.alert('Error', `Format Nomor Tiket Timbang Tidak Sesuai Dengan Tujuan Pengiriman!(${regexTiket})`);
+        return;
+      } else{
+        console.log("berhasil");
+      }
+
+      // Validate the PO input
+      if (!regexPO.test(PO)) {
+        setPO('');
+        Alert.alert('Error', `Format Nomor PO Tidak Sesuai Dengan Tujuan Pengiriman!(${regexPO})`);
+        return;
+      } else{
+        console.log("berhasil");
+      }
+    
+    } else {
+      Alert.alert('Error', 'Tolong Pilih Tujuan Dari Opsi Yang Diberikan!');
+      return;
+    }
+    
+
     const platRegex = /^[A-Z]{1,2}\s{1}\d{1,4}\s{1}[A-Z]{1,3}$/i;
 
     if (!platRegex.test(plat)) {
@@ -288,25 +364,15 @@ const Form = () => {
       return;
     }
 
-    const poRegex = /^\d{2}\/\d{2}\/\d{4}$/; // Regex to match the format YY/MM/XXXX
+    // const poRegex = /^\d{2}\/\d{2}\/\d{4}$/; // Regex to match the format YY/MM/XXXX
 
-    if (!poRegex.test(PO)) {
-      Alert.alert(
-        "Error",
-        "Nomor PO harus dalam format YY/MM/XXXX. (Tahun/Bulan/NomorPO)"
-      );
-      return;
-    }
-
-    const tiketRegex = /^[A-Z]\d{4} \d{3} \d{3}$/;
-
-    if (!tiketRegex.test(no_tiket)) {
-      Alert.alert(
-        "Error",
-        "Nomor Tiket harus dalam format Ixxxx xxx xxx. Contoh: I1900 731 123"
-      );
-      return;
-    }
+    // if (!poRegex.test(PO)) {
+    //   Alert.alert(
+    //     "Error",
+    //     "Nomor PO harus dalam format YY/MM/XXXX. (Tahun/Bulan/NomorPO)"
+    //   );
+    //   return;
+    // }
 
     const currentDateAndTime = new Date();
     setDateAndTime(currentDateAndTime.toISOString());
@@ -371,7 +437,7 @@ const Form = () => {
         },
       ]
     );
-    console.log("formSubmitted: ", formSubmitted);
+    // console.log("formSubmitted: ", formSubmitted);
       }
     } catch (error) {
       checkToken();
@@ -416,7 +482,7 @@ const Form = () => {
             <MyTextInput
               label="Nama Driver:"
               icon="user"
-              placeholder=""
+              placeholder="Nama Supir"
               value={driver}
               onChangeText={setDriver}
             />
@@ -444,7 +510,6 @@ const Form = () => {
             <MyTextInput
               label="Nomor Tiket Timbang:"
               icon="file-text"
-              placeholder="I1900 XXX XXX"
               value={no_tiket}
               onChangeText={setNoTiket}
             />
@@ -469,7 +534,6 @@ const Form = () => {
               keyboardType={"numeric"}
             />
           </View>
-
           <View>
             <PickerInput
               label="Jenis Kayu"
