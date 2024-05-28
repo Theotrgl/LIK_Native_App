@@ -119,35 +119,39 @@ const ReportSummary = () => {
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
     let startDateStr, endDateStr;
-
-    const currentMonth = currentDate.getMonth() + 1;
-
+  
+    const currentMonth = currentDate.getMonth() + 1; // getMonth() is zero-indexed, so add 1 for correct month number
+  
     if (dateRange === "1-10") {
-      startDateStr = `${currentYear}-${currentMonth}-01`;
-      endDateStr = `${currentYear}-${currentMonth}-10`;
+      startDateStr = `${currentYear}-${currentMonth.toString().padStart(2, "0")}-01`;
+      endDateStr = `${currentYear}-${currentMonth.toString().padStart(2, "0")}-10`;
     } else if (dateRange === "11-20") {
-      startDateStr = `${currentYear}-${currentMonth}-11`;
+      startDateStr = `${currentYear}-${currentMonth.toString().padStart(2, "0")}-11`;
       endDateStr = calculateEndDate(currentYear, currentMonth, 20);
     } else if (dateRange === "21-30") {
-      startDateStr = `${currentYear}-${currentMonth}-21`;
+      startDateStr = `${currentYear}-${currentMonth.toString().padStart(2, "0")}-21`;
       endDateStr = calculateEndDate(currentYear, currentMonth, 30);
-    } else {
+    }else if (dateRange === "21-31") { // Add this condition to handle 21-31 range
+      startDateStr = `${currentYear}-${currentMonth.toString().padStart(2, "0")}-21`;
+      endDateStr = calculateEndDate(currentYear, currentMonth, 31);
+    }else {
       // Default to current month if no valid date range is selected
-      startDateStr = `${currentYear}-${currentMonth}-01`;
+      startDateStr = `${currentYear}-${currentMonth.toString().padStart(2, "0")}-01`;
       endDateStr = calculateEndDate(currentYear, currentMonth, 30);
     }
-
+  
     setRefreshing(true); // Set refreshing to true before fetching data
-
+  
     setStartDate(startDateStr);
     setEndDate(endDateStr);
-
+  
     fetchSummary().then(() => {
       setRefreshing(false); // Set refreshing to false after fetching data
     });
   };
-
+  
   const calculateEndDate = (year, month, day) => {
+    // month + 1 because Date month is zero-indexed (0-11)
     const lastDayOfMonth = new Date(year, month, 0).getDate();
     const endDay = Math.min(day, lastDayOfMonth);
     return `${year}-${month.toString().padStart(2, "0")}-${endDay
@@ -182,19 +186,19 @@ const ReportSummary = () => {
       />
       <View style={[styles.buttonContainer]}>
         <Button
-          title="Periode 1-10"
+          title="Periode 1"
           filled
           onPress={() => handleDateRangeFilter("1-10")}
         />
         <Button
-          title="Periode 11-20"
+          title="Periode 2"
           filled
           onPress={() => handleDateRangeFilter("11-20")}
         />
         <Button
-          title="Periode 21-30"
+          title="Periode 3"
           filled
-          onPress={() => handleDateRangeFilter("21-30")}
+          onPress={() => handleDateRangeFilter("21-31")}
         />
       </View>
     </SafeAreaView>

@@ -65,7 +65,7 @@ const Form = () => {
   const [driver, setDriver] = useState("");
   const [PO, setPO] = useState("");
   const [DO, setDO] = useState("");
-  const [no_tiket, setNoTiket] = useState("I1900 ");
+  const [no_tiket, setNoTiket] = useState("");
   const [berat, setBerat] = useState("");
   const [tanggal, setTanggal] = useState(new Date());
   const [reject, setReject] = useState("");
@@ -223,7 +223,7 @@ const Form = () => {
     setDriver("");
     setPO("");
     setDO("");
-    setNoTiket("I1900 ");
+    setNoTiket("");
     setBerat("");
     setTanggal(new Date());
     setReject("");
@@ -415,7 +415,7 @@ const Form = () => {
       setDriver("");
       setPO("");
       setDO("");
-      setNoTiket("I1900 ");
+      setNoTiket("");
       setBerat("");
       setTanggal(new Date());
       setReject("");
@@ -510,6 +510,7 @@ const Form = () => {
             <MyTextInput
               label="Nomor Tiket Timbang:"
               icon="file-text"
+              placeholder="No.Tiket Timbang"
               value={no_tiket}
               onChangeText={setNoTiket}
             />
