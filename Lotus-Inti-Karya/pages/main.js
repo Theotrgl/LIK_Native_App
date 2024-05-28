@@ -83,6 +83,7 @@ const Form = () => {
   const [loading, setLoading] = useState(false);
   const [regexTiket, setRegexTiket] = useState(/.*/);
   const [regexPO, setRegexPO] = useState(/.*/);
+  const [regexDO, setRegexDO] = useState(/.*/);
   const navigation = useNavigation();
 
   // Image Processing Function
@@ -256,19 +257,23 @@ const Form = () => {
         case 'Sumatra Prima Fiberboard':
           setRegexTiket(/^[A-Z]\d{4} \d{3} \d{3}$/);
           setRegexPO(/^\d{2}\/\d{2}\/\d{4}$/);
+          setRegexDO(/^\d{6}$/);
           break;
         case 'Cipta Mandala':
           setRegexTiket(/^\d{6}$/);
-          setRegexPO(/^\d{6}$/);
+          setRegexPO(/.*/);
+          setRegexDO(/^\d{6}-\d{5}$/);
           break;
         case 'Hijau Lestari':
-          setRegexTiket(/^[a-zA-Z]+$/);
-          setRegexPO(/^[a-zA-Z]+$/);
+          setRegexTiket(/^\d{6}$/);
+          setRegexPO(/.*/);
+          setRegexDO(/.*/);
           break;
         default:
           setRegexTiket(/^[A-Z]\d{4} \d{3} \d{3}$/); // Default regex pattern for Tiket
           setRegexPO(/^\d{2}\/\d{2}\/\d{4}$/);      // Default regex pattern for PO
-      }
+          setRegexDO(/^\d{6}$/);
+        }
     }
   }, [tujuan]);
   
@@ -307,20 +312,25 @@ const Form = () => {
         case 'Sumatra Prima Fiberboard':
           setRegexTiket(/^[A-Z]\d{4} \d{3} \d{3}$/);
           setRegexPO(/^\d{2}\/\d{2}\/\d{4}$/);
+          setRegexDO(/^\d{6}$/);
           break;
         case 'Cipta Mandala':
           setRegexTiket(/^\d{6}$/);
-          setRegexPO(/^\d+$/);
+          setRegexPO(/.*/);
+          setRegexDO(/^\d{6}-\d{5}$/);
           break;
         case 'Hijau Lestari':
-          setRegexTiket(/^[a-zA-Z]+$/);
-          setRegexPO(/^[a-zA-Z]+$/);
+          setRegexTiket(/^\d{6}$/);
+          setRegexPO(/.*/);
+          setRegexDO(/.*/);
           break;
         default:
           setRegexTiket(/^[A-Z]\d{4} \d{3} \d{3}$/); // Default regex pattern for Tiket
           setRegexPO(/^\d{2}\/\d{2}\/\d{4}$/);      // Default regex pattern for PO
-      }
+          setRegexDO(/^\d{6}$/);
+        }
       console.log("RegexPO:", regexPO);
+      console.log("RegexDO:", regexDO);
       console.log("RegexTiket:",regexTiket);
     
       // Validate the Tiket input
@@ -336,6 +346,15 @@ const Form = () => {
       if (!regexPO.test(PO)) {
         setPO('');
         Alert.alert('Error', `Format Nomor PO Tidak Sesuai Dengan Tujuan Pengiriman!(${regexPO})`);
+        return;
+      } else{
+        console.log("berhasil");
+      }
+
+      // Validate the DO input
+      if (!regexDO.test(DO)) {
+        setDO('');
+        Alert.alert('Error', `Format Nomor DO Tidak Sesuai Dengan Tujuan Pengiriman!(${regexDO})`);
         return;
       } else{
         console.log("berhasil");
@@ -356,10 +375,10 @@ const Form = () => {
 
     const intRegex = /^\d+$/; // Regex to match integers
 
-    if (!intRegex.test(DO) || !intRegex.test(berat) || !intRegex.test(reject)) {
+    if (!intRegex.test(berat) || !intRegex.test(reject)) {
       Alert.alert(
         "Error",
-        "DO, Berat, dan Reject harus berupa angka bulat tanpa tanda baca."
+        "Berat, dan Reject harus berupa angka bulat tanpa tanda baca."
       );
       return;
     }
