@@ -273,10 +273,10 @@ const Form = () => {
   }, [tujuan]);
   
 
-  const goToSummaryPage = () => {
-    checkToken();
-    navigation.navigate('Summary'); // Navigate to the 'Form' page
-  };
+//   const goToSummaryPage = () => {
+//     checkToken();
+//     navigation.navigate('Summary'); // Navigate to the 'Form' page
+//   };
 
   const handleSubmit = async () => {
     checkToken();
@@ -465,9 +465,9 @@ const Form = () => {
         }
       >
         <Navbar />
-        <TouchableOpacity onPress={goToSummaryPage}>
+        {/* <TouchableOpacity onPress={goToSummaryPage}>
           <Text style={{ fontSize: 18, color: 'blue' }}>Lihat Sejarah Input</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <View style={styles.container}>
           <View style={{ marginBottom: 12 }}>
             <MyTextInput
