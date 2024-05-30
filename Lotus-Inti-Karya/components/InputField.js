@@ -43,7 +43,7 @@ class MyTextInput extends React.Component {
     // We should also make sure to remove the `onFocus` and
     // `onBlur` props from the `...otherProps`, otherwise
     // they would override our own handlers.
-    const { icon, label, onFocus, onBlur, ...otherProps } = this.props;
+    const { icon, label, onFocus, onBlur, disabled, ...otherProps } = this.props;
 
     return (
       <View>
@@ -71,6 +71,7 @@ class MyTextInput extends React.Component {
             onFocus={this.handleFocus}
             onBlur={this.handleBlur}
             style={styles.input}
+            editable = {!disabled}
             {...otherProps}
           />
         </TouchableOpacity>

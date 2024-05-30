@@ -85,6 +85,8 @@ const Form = () => {
   const [regexPO, setRegexPO] = useState(/.*/);
   const [regexDO, setRegexDO] = useState(/.*/);
   const navigation = useNavigation();
+  const [disablePO, setDisablePO] = useState(false);
+  const [disableDO, setDisableDO] = useState(false);
 
   // Image Processing Function
   const options = {
@@ -258,16 +260,28 @@ const Form = () => {
           setRegexTiket(/^[A-Z]\d{4} \d{3} \d{3}$/);
           setRegexPO(/^\d{2}\/\d{2}\/\d{4}$/);
           setRegexDO(/^\d{6}$/);
+          setDisablePO(false);
+          setDisableDO(false);
+          setPO('');
+          setDO('');
           break;
         case 'Cipta Mandala':
           setRegexTiket(/^\d{6}$/);
           setRegexPO(/.*/);
-          setRegexDO(/^\d{6}-\d{5}$/);
+          setRegexDO(/^\d{6}\d{5}$/);
+          setDisablePO(true);
+          setDisableDO(false);
+          setPO('-');
+          setDO('');
           break;
         case 'Hijau Lestari':
           setRegexTiket(/^\d{6}$/);
           setRegexPO(/.*/);
           setRegexDO(/.*/);
+          setDisablePO(true);
+          setDisableDO(true);
+          setPO('-');
+          setDO('-');
           break;
         default:
           setRegexTiket(/^[A-Z]\d{4} \d{3} \d{3}$/); // Default regex pattern for Tiket
@@ -488,6 +502,13 @@ const Form = () => {
           <Text style={{ fontSize: 18, color: 'blue' }}>Lihat Sejarah Input</Text>
         </TouchableOpacity> */}
         <View style={styles.container}>
+        <View>
+          <PickerInput
+            label="Tujuan Pengiriman"
+            data={tujuanOpt}
+            onSelect={setTujuan} // Pass the setter function to handle the selected value
+          />
+        </View>
           <View style={{ marginBottom: 12 }}>
             <MyTextInput
               label="Plat Nomor:"
@@ -513,6 +534,7 @@ const Form = () => {
               placeholder="YY/MM/XXXX"
               value={PO}
               onChangeText={setPO}
+              disabled={disablePO}
             />
           </View>
           <View style={{ marginBottom: 12 }}>
@@ -523,6 +545,7 @@ const Form = () => {
               value={DO}
               onChangeText={setDO}
               keyboardType={"numeric"}
+              disabled={disableDO}
             />
           </View>
           <View style={{ marginBottom: 12 }}>
@@ -564,11 +587,6 @@ const Form = () => {
               label="Lokasi Pemotongan"
               data={lokasiOpt}
               onSelect={setLokasi} // Pass the setter function to handle the selected value
-            />
-            <PickerInput
-              label="Tujuan Pengiriman"
-              data={tujuanOpt}
-              onSelect={setTujuan} // Pass the setter function to handle the selected value
             />
           </View>
 
