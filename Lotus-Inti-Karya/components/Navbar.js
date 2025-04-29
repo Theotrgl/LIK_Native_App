@@ -1,18 +1,31 @@
 import React from "react";
-import { View, Image, TouchableOpacity, StyleSheet } from "react-native";
-import LogoutButton from "./LogoutButton"; // Assuming LogoutButton component is in the same directory
+import { View, Image, StyleSheet } from "react-native";
 import COLORS from "../constants/colors";
 
-const Navbar = () => {
+const Navbar = ({
+  showLogo = true,
+  logoSource = require("../assets/liklogo-2.png"),
+  leftContent = null,
+  rightContent = null,
+  style,
+}) => {
   return (
-    <View style={styles.navbar}>
-      {/* Left Section (Title) */}
-      <Image source={require("../assets/liklogo-2.png")} style={styles.logo} />
-
-      {/* Right Section (Logout Button) */}
-      <View style={styles.logoutButtonContainer}>
-        <LogoutButton />
+    <View style={[styles.navbar, style]}>
+      {/* Left Section */}
+      <View style={styles.leftSection}>
+        {leftContent ? (
+          leftContent
+        ) : showLogo ? (
+          <Image
+            source={logoSource}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        ) : null}
       </View>
+
+      {/* Right Section */}
+      <View style={styles.rightSection}>{rightContent}</View>
     </View>
   );
 };
@@ -23,26 +36,37 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 8,
+    paddingVertical: 12,
     backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: COLORS.lightGray,
     width: "100%",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  leftSection: {
+    flex: 1,
+    justifyContent: "flex-start",
+  },
+  centerSection: {
+    flex: 2,
+    alignItems: "center",
+  },
+  rightSection: {
+    flex: 1,
+    alignItems: "flex-end",
+  },
+  logo: {
+    width: 60,
+    height: 40,
   },
   title: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  logoutButtonContainer: {
-    marginLeft: 5, // Pushes the container to the right end
-  },
-  logo: {
-    width: 60, // Adjust the width and height as needed
-    height: 40,
-    marginRight: 10,
-    resizeMode: "contain",
+    fontWeight: "600",
+    color: COLORS.black,
   },
 });
 

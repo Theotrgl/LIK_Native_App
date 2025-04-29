@@ -1,45 +1,87 @@
-import { Text, TouchableOpacity, StyleSheet } from "react-native";
 import React from "react";
-import COLORS from "../constants/colors";
+import {
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
 import { Feather } from "@expo/vector-icons";
+import COLORS from "../constants/colors";
 
-const Button = (props) => {
-  const filledBgColor = props.color || COLORS.primary;
-  const outlinedColor = COLORS.white;
-  const bgColor = props.filled ? filledBgColor : outlinedColor;
-  const textColor = props.filled ? COLORS.white : COLORS.primary;
-  const borderColor = props.borderColor || COLORS.primary;
+const Button = ({
+  title,
+  onPress,
+  filled = true,
+  color = COLORS.primary,
+  textColor,
+  borderColor,
+  icon,
+  style,
+  disabled = false,
+  loading = false,
+  rippleColor = COLORS.white,
+  hitSlop = { top: 10, bottom: 10, left: 10, right: 10 },
+}) => {
+  const backgroundColor = filled ? color : COLORS.white;
+  const finalTextColor = textColor ?? (filled ? COLORS.white : color);
+  const finalBorderColor = borderColor ?? color;
+  const buttonOpacity = disabled ? 0.6 : 1;
 
   return (
     <TouchableOpacity
-      style={{
-        ...styles.button,
-        ...{ backgroundColor: bgColor },
-        ...{ borderColor: borderColor },
-        ...props.style,
-      }}
-      onPress={props.onPress}
+      style={[
+        styles.button,
+        {
+          backgroundColor,
+          borderColor: finalBorderColor,
+          opacity: buttonOpacity,
+        },
+        style,
+      ]}
+      onPress={onPress}
+      disabled={disabled || loading}
+      activeOpacity={0.7}
+      hitSlop={hitSlop}
     >
-      {props.icon && (
-        <Feather name={props.icon} size={24} color={textColor} style={styles.icon} />
+      {loading ? (
+        <ActivityIndicator color={finalTextColor} size="small" />
+      ) : (
+        <>
+          {icon && (
+            <Feather name={icon} size={20} color={finalTextColor} style={styles.icon} />
+          )}
+          <Text style={[styles.text, { color: finalTextColor }]}>
+            {title}
+          </Text>
+        </>
       )}
-      <Text style={{ fontSize: 18, ...{ color: textColor } }}>
-        {props.title}
-      </Text>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   button: {
-    paddingBottom: 16,
-    paddingVertical: 10,
-    borderColor: COLORS.primary,
-    borderWidth: 2,
-    borderRadius: 12,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderWidth: 1,
+    borderRadius: 12,
+    minHeight: 50,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  icon: { marginRight: 5 },
+  text: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  icon: {
+    marginRight: 8,
+  },
 });
+
 export default Button;

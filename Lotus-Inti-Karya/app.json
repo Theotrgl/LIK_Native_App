@@ -2,11 +2,9 @@
   "expo": {
     "name": "Lotus Inti Karya",
     "slug": "Lotus-Inti-Karya",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "minify": true,
-    "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/liksplash.png",
       "resizeMode": "contain",
@@ -15,28 +13,26 @@
     "assetBundlePatterns": [
       "**/*"
     ],
-    "ios": {
-      "supportsTablet": true
-    },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/liklogo.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.shibehibe.LotusIntiKarya"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
+      "package": "com.shibehibe.LotusIntiKarya",
+      "versionCode": 3,
+      "permissions": [
+        "android.permission.INTERNET"
+      ]
     },
     "plugins": [
-      "expo-secure-store",
       [
         "expo-build-properties",
         {
           "android": {
-            "usesCleartextTraffic":true,
-            "enableProguardInReleaseBuilds":true,
-            "enableShrinkResourcesInReleaseBuilds" :true
+            "usesCleartextTraffic": true,
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34,
+            "buildToolsVersion": "34.0.0"
           }
         }
       ]
@@ -45,6 +41,7 @@
       "eas": {
         "projectId": "a2df1d71-3ca6-4dc9-a1de-755965b438e1"
       }
-    }
+    },
+    "owner": "lotusintikarya"
   }
 }

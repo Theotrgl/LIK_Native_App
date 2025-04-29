@@ -4,7 +4,6 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Login from "../pages/login";
-import Register from "../pages/register";
 import Form from "../pages/main";
 import ReportSummary from "../pages/summary";
 import COLORS from "../constants/colors";
@@ -34,9 +33,9 @@ const MainTabNavigator = () => {
         activeTintColor: COLORS.primary,
         inactiveTintColor: COLORS.gray,
       })}
-      // screenOptions={{
-      //   headerShown: false,
-      // }}
+    // screenOptions={{
+    //   headerShown: false,
+    // }}
     >
       <Tab.Screen name="Isi Form" component={Form} />
       <Tab.Screen name="Sejarah Input" component={ReportSummary} />
@@ -65,7 +64,7 @@ const RootStack = () => {
         <Stack.Screen name="Login" component={Login} />
         {/* <Stack.Screen name="Summary" component={ReportSummary} />
         <Stack.Screen name="Form" component={Form} /> */}
-        <Stack.Screen name="Main" component={MainTabNavigator}/>
+        <Stack.Screen name="Main" component={MainTabNavigator} />
       </Stack.Navigator>
     </NavigationContainer>
   );

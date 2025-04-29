@@ -34,15 +34,6 @@ class MyTextInput extends React.Component {
 
   render() {
     const { isFocused } = this.state;
-    // We want to change the color of the input underline
-    // when it is focused. To do so this component
-    // must be aware of being focused, so we'll use the
-    // TextInput `onFocus` and `onBlur` callbacks to set
-    // a variable in the state that keeps track of when the
-    // TextInput is focused.
-    // We should also make sure to remove the `onFocus` and
-    // `onBlur` props from the `...otherProps`, otherwise
-    // they would override our own handlers.
     const { icon, label, onFocus, onBlur, ...otherProps } = this.props;
 
     return (
@@ -81,15 +72,15 @@ class MyTextInput extends React.Component {
 
 const styles = StyleSheet.create({
   container: {
-    height: 45,
-    borderWidth: 2,
-    borderRadius: 7,
+    height: 55,
+    borderWidth: 1,
+    borderRadius: 8,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 10,
     marginBottom: 9,
     width: 300,
-    // minWidth: "80%",
+    width: "100%",
   },
   input: {
     flex: 1,

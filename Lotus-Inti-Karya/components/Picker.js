@@ -1,71 +1,108 @@
-import React, { useState } from "react";
-import { Text, View, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useState, useEffect } from "react";
+import { Text, View, StyleSheet } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import COLORS from "../constants/colors";
-import { Feather } from "@expo/vector-icons";
 
-const PickerInput = ({ label, data, onSelect }) => {
-  const [selectedValue, setSelectedValue] = useState(false);
+const PickerInput = ({
+  label,
+  data = [],
+  onSelect,
+  value,
+  placeholder,
+  displayField = "nama",
+  keyExtractor = "id",
+  disabled = false,
+  style = {}
+}) => {
+  const [selectedValue, setSelectedValue] = useState(null);
   const [isFocused, setIsFocused] = useState(false);
 
+  // Sync with external value changes
+  useEffect(() => {
+    if (value) {
+      setSelectedValue(value[keyExtractor]);
+    } else {
+      setSelectedValue(null);
+    }
+  }, [value, keyExtractor]);
+
+  const handleValueChange = (itemValue) => {
+    if (itemValue === null || disabled) {
+      onSelect(null);
+      return;
+    }
+
+    const selectedItem = data.find(item => item[keyExtractor] === itemValue);
+    setSelectedValue(itemValue);
+    onSelect(selectedItem);
+    setIsFocused(false);
+  };
+
   return (
-    <View>
+    <View style={[styles.container, style]}>
       <Text style={styles.label}>{label}</Text>
-      <TouchableOpacity
-        activeOpacity={1}
-        onPress={() => setIsFocused(true)}
-        style={[
-          styles.container,
-          { borderColor: isFocused ? COLORS.primary : "#999" },
-        ]}
+      <View style={[
+        styles.pickerContainer,
+        {
+          borderColor: isFocused ? COLORS.primary : COLORS.lightGray,
+          backgroundColor: isFocused ? COLORS.lightPrimary : disabled ? COLORS.lightGray : 'white',
+          opacity: disabled ? 0.7 : 1
+        },
+      ]}
       >
         <Picker
           selectedValue={selectedValue}
-          onValueChange={(itemValue, itemIndex) => {
-            setIsFocused(false);
-            setSelectedValue(itemValue);
-            onSelect(itemValue); // Pass the selected value to the parent component
-          }}
-          style={styles.input}
-          onFocus={() => setIsFocused(true)}
+          onValueChange={handleValueChange}
+          style={[styles.picker, disabled && styles.disabledPicker]}
+          dropdownIconColor={isFocused ? COLORS.primary : disabled ? COLORS.gray : COLORS.gray}
+          mode="dropdown"
+          onFocus={() => !disabled && setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
+          enabled={!disabled}
         >
-          <Picker.Item key="default" label={`Pilih ${label}`} value={null} color={isFocused ? COLORS.primary : "#999"} />
+          <Picker.Item
+            label={placeholder || `Pilih ${label}`}
+            value={null}
+            color={disabled ? COLORS.gray : COLORS.gray}
+          />
           {data.map((item) => (
             <Picker.Item
-              key={item.id}
-              label={item.nama}
-              value={item}
-              color={isFocused ? COLORS.primary : "#999"}
+              key={item[keyExtractor]}
+              label={item[displayField]}
+              value={item[keyExtractor]}
+              color={disabled ? COLORS.gray : COLORS.dark}
             />
           ))}
         </Picker>
-      </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    height: 45,
-    borderWidth: 2,
-    borderRadius: 7,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    marginBottom: 9,
-    width: 300,
-  },
-  input: {
-    flex: 1,
-    width: "100%",
-    height: 40,
-    paddingHorizontal: 10,
+    marginBottom: 16,
   },
   label: {
-    fontSize: 16,
-    fontWeight: "400",
-    marginVertical: 8,
+    fontSize: 14,
+    fontWeight: "500",
+    marginBottom: 8,
+    color: COLORS.dark,
+  },
+  pickerContainer: {
+    height: 55,
+    borderWidth: 1,
+    borderRadius: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+  },
+  picker: {
+    width: '100%',
+    color: COLORS.dark,
+  },
+  disabledPicker: {
+    color: COLORS.gray,
   },
 });
 
