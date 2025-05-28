@@ -10,13 +10,12 @@ import {
   Image
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import MyTextInput from "../components/InputField";
-import Button from "../components/Button";
-import COLORS from "../constants/colors";
-// import { retrieveToken } from "../auth/auth";
+import MyTextInput from "../../components/InputField";
+import Button from "../../components/Button";
+import COLORS from "../../constants/colors";
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
-import { API_BASE_URL } from "../constants";
+import { API_BASE_URL } from "../../constants/constants";
 
 const Login = () => {
   const navigation = useNavigation();
@@ -28,28 +27,28 @@ const Login = () => {
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => true)
     return () => backHandler.remove()
   }, []);
+
   const checkToken = async () => {
     try {
       const token = await SecureStore.getItemAsync('authToken');
       if (token) {
-        navigation.navigate('Main');
+        navigation.navigate('MainMenu'); // Changed from 'Main' to 'MainMenu'
       }
     } catch (error) {
       console.error('Error:', error);
     }
   };
+
   const handleLogin = async () => {
     if (!username || !password) {
-      Alert.alert("Semua Kolom Wajib Di isi!");
+      Alert.alert("Semua Kolom Wajib Diisi!");
       return;
     }
     try {
-
       const response = await axios.post((`${API_BASE_URL}/api/login_user/`), {
         username: username,
         password: password
       }, {
-
         headers: {
           "Content-Type": "application/json",
         },
@@ -63,34 +62,26 @@ const Login = () => {
         await SecureStore.setItemAsync('User', userID);
         await SecureStore.setItemAsync('GroupID', groupID);
         await SecureStore.setItemAsync('authToken', token);
-        console.log(token)
-        // Store token securely using authUtils storeToken function
+
         Alert.alert("Sukses", "Berhasil Masuk");
         setPassword("");
         setUsername("");
-        navigation.navigate("Main")
-        // Handle navigation to next screen or other actions after successful login
+        navigation.navigate("MainMenu"); // Changed from 'Main' to 'MainMenu'
       } else {
         Alert.alert("Error", "Akun Tidak Terdaftar");
       }
     } catch (error) {
       if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
         console.log("Server responded with status code:", error.response.status);
         if (error.response.status === 401) {
-          // Handle unauthorized (invalid credentials) error
           Alert.alert("Error", "Username atau Password Salah");
         } else {
-          // Handle other server errors
           Alert.alert("Error", "Ada masalah dengan server");
         }
       } else if (error.request) {
-        // The request was made but no response was received
         console.log("Request was made but no response received");
         Alert.alert("Error", "Tidak ada respons dari server");
       } else {
-        // Something else happened in making the request
         console.log("Error while making the request:", error.message);
         Alert.alert("Error", "Terjadi error");
       }
@@ -105,7 +96,7 @@ const Login = () => {
         {/* Header with logo */}
         <View style={styles.header}>
           <Image
-            source={require('../assets/liklogo-2.png')} // Add your app logo
+            source={require('../../assets/liklogo-2.png')}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -186,7 +177,6 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     marginBottom: 16,
-
   },
   input: {
     backgroundColor: 'white',
@@ -198,7 +188,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
   },
-
   loginButton: {
     marginTop: 24,
     borderRadius: 8,

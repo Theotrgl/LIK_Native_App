@@ -1,6 +1,6 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
-import { API_BASE_URL } from "../constants";
+import { API_BASE_URL } from "../constants/constants";
 
 const checkToken = async (navigation) => {
     try {
@@ -17,6 +17,32 @@ const checkToken = async (navigation) => {
     }
 };
 
+const getUserInfo = async () => {
+    try {
+        const token = await SecureStore.getItemAsync("authToken");
+        if (!token) throw new Error("No authentication token found");
+
+        const response = await axios.get(`${API_BASE_URL}/api/info_user`, {
+            headers: {
+                "Authorization": `Token ${token}`,
+                "User-Agent": "LIK App/1.1.0",
+                "Accept": "application/json"
+            }
+        });
+
+        return {
+            firstName: response.data.first_name || "User"
+        };
+    } catch (error) {
+        console.error("Full error details:", {
+            config: error.config,
+            response: error.response?.data,
+            status: error.response?.status
+        });
+        throw error;
+    }
+};
+
 const fetchOptions = async () => {
     try {
         const groupID = await SecureStore.getItemAsync("GroupID");
@@ -28,7 +54,6 @@ const fetchOptions = async () => {
             axios.get(`${API_BASE_URL}/api/group/${groupID}/kayu/`)
         ]);
 
-        // Pastikan 'Log' dan 'Karet HL' selalu ada di opsi
         const requiredWoodTypes = [
             { id: 'default-log', nama: 'Log' },
             { id: 'default-karet', nama: 'Karet HL' }
@@ -49,7 +74,6 @@ const fetchOptions = async () => {
         };
     } catch (error) {
         console.error("Error fetching options:", error);
-        // Return default options with required wood types if API fails
         return {
             tujuanOpt: [],
             lokasiOpt: [],
@@ -63,37 +87,20 @@ const fetchOptions = async () => {
 
 const submitFormData = async (formData) => {
     try {
+        const token = await SecureStore.getItemAsync("authToken");
+        if (!token) throw new Error("No authentication token found");
+
         const userID = await SecureStore.getItemAsync("User");
         if (!userID) throw new Error("User ID not found");
 
+        // Validate image exists
+        if (!formData.imageURI) {
+            throw new Error("Foto bukti harus diupload");
+        }
+
         const formPayload = new FormData();
 
-        // Validasi dan penyesuaian otomatis berdasarkan tujuan
-        const tujuanNama = formData.tujuan?.nama || '';
-        const kayuNama = formData.kayu?.nama || '';
-
-        // Auto-set untuk tujuan khusus
-        const isHijauLestari = tujuanNama === 'Hijau Lestari';
-        const isCiptaMandala = tujuanNama === 'Cipta Mandala';
-
-        // 1. Validasi jenis kayu sesuai tujuan
-        if (isHijauLestari && kayuNama !== 'Karet HL') {
-            throw new Error("Jenis kayu harus 'Karet HL' untuk tujuan Hijau Lestari");
-        }
-        if (isCiptaMandala && kayuNama !== 'Log') {
-            throw new Error("Jenis kayu harus 'Log' untuk tujuan Cipta Mandala");
-        }
-
-        // 2. Auto-set PO dan reject
-        const poValue = isHijauLestari || isCiptaMandala ? '-' : formData.PO;
-        const rejectValue = isHijauLestari ? '0' : formData.reject;
-
-        // 3. Validasi format plat nomor
-        const platRegex = /^[A-Z]{1,2}\s{1}\d{1,4}\s{1}[A-Z]{1,3}$/i;
-        if (!platRegex.test(formData.plat)) {
-            throw new Error("Format plat nomor tidak valid. Contoh: BG 1234 XY");
-        }
-
+        // Prepare payload data
         const payloadData = {
             plat: formData.plat,
             driver: formData.driver,
@@ -101,29 +108,31 @@ const submitFormData = async (formData) => {
             no_tiket: formData.no_tiket,
             berat: formData.berat,
             tanggal: formData.tanggal.toISOString().slice(0, 10),
-            reject: rejectValue,
+            reject: formData.reject,
             lokasi: formData.lokasi?.nama || '',
-            tujuan: tujuanNama,
-            kayu: kayuNama,
+            tujuan: formData.tujuan?.nama || '',
+            kayu: formData.kayu?.nama || '',
             date_time: new Date().toISOString(),
             sender: userID,
-            PO: poValue,
+            PO: formData.PO,
             catatan: formData.catatan || ''
         };
 
-        // Tambahkan data ke FormData
+        // Append all fields to FormData
         Object.entries(payloadData).forEach(([key, value]) => {
             formPayload.append(key, value);
         });
 
         // Handle image upload
-        if (formData.image?.assets?.[0]) {
-            formPayload.append("foto", {
-                uri: formData.image.assets[0].uri,
-                type: formData.image.assets[0].mimeType || 'image/jpeg',
-                name: formData.image.assets[0].fileName || `photo_${Date.now()}.jpg`,
-            });
-        }
+        const filename = formData.imageURI.split('/').pop();
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+        formPayload.append("foto", {
+            uri: formData.imageURI,
+            name: filename || `photo_${Date.now()}.jpg`,
+            type: type
+        });
 
         const response = await axios.post(
             `${API_BASE_URL}/api/add_report_mobile/`,
@@ -131,18 +140,32 @@ const submitFormData = async (formData) => {
             {
                 headers: {
                     "Content-Type": "multipart/form-data",
-                    "Authorization": `Bearer ${await SecureStore.getItemAsync("authToken")}`
+                    "Authorization": `Token ${token}`
                 },
-                timeout: 30000 // 30 detik timeout
+                timeout: 30000
             }
         );
 
-        // Validasi response
         if (!response.data || response.status < 200 || response.status >= 300) {
             throw new Error("Invalid server response");
         }
 
-        return response;
+        // Return success data including submission details
+        return {
+            success: true,
+            message: "Data berhasil disimpan!",
+            submissionData: {
+                plat: formData.plat,
+                driver: formData.driver,
+                no_tiket: formData.no_tiket,
+                berat: formData.berat,
+                tanggal: payloadData.tanggal,
+                lokasi: payloadData.lokasi,
+                tujuan: payloadData.tujuan,
+                timestamp: new Date().toLocaleString()
+            },
+            serverResponse: response.data
+        };
 
     } catch (error) {
         console.error("Submission error:", error);
@@ -159,9 +182,216 @@ const submitFormData = async (formData) => {
         throw new Error(errorMessage);
     }
 };
+// New function to fetch petty cash categories
+const fetchPettyCashCategories = async () => {
+    try {
+        const token = await SecureStore.getItemAsync("authToken");
+        if (!token) throw new Error("No authentication token found");
+
+        const response = await axios.get(`${API_BASE_URL}/api/pettycash/kategori/`, {
+            headers: {
+                "Authorization": `Token ${token}`,
+                "Accept": "application/json"
+            }
+        });
+
+        // Transform data untuk match dengan yang diharapkan komponen
+        return response.data.map(item => ({
+            id: item.id.toString(),
+            nama: item.nama_kategori // Ubah dari nama_kategori ke nama
+        }));
+    } catch (error) {
+        console.error("Error fetching petty cash categories:", error);
+        throw error;
+    }
+};
+const fetchPettyCashEmployeesByRole = async (roleId) => {
+    try {
+        const token = await SecureStore.getItemAsync("authToken");
+        if (!token) throw new Error("No authentication token found");
+
+        const response = await axios.get(
+            `${API_BASE_URL}/api/pettycash/pegawai/role/${roleId}/`,
+            {
+                headers: {
+                    "Authorization": `Token ${token}`,
+                    "User-Agent": "LIK App/1.1.0",
+                    "Accept": "application/json"
+                }
+            }
+        );
+
+        if (response.status !== 200) {
+            throw new Error(`Server returned status ${response.status}`);
+        }
+
+        return response.data || [];
+    } catch (error) {
+        console.error("Error fetching employees by role:", {
+            error: error.message,
+            response: error.response?.data,
+            status: error.response?.status
+        });
+        throw error;
+    }
+};
+
+const fetchPettyCashRole = async () => {
+    try {
+        const token = await SecureStore.getItemAsync("authToken");
+        if (!token) throw new Error("No authentication token found");
+
+        const response = await axios.get(`${API_BASE_URL}/api/pettycash/role/`, {
+            headers: {
+                "Authorization": `Token ${token}`,
+                "Accept": "application/json"
+            }
+        });
+
+        return response.data.map(item => ({
+            id: item.id.toString(),
+            nama: item.nama_role
+        }));
+    } catch (error) {
+        console.error("Error fetching petty cash roles:", error);
+        throw error;
+    }
+};
+
+// New function to fetch petty cash employees
+const fetchPettyCashEmployees = async () => {
+    try {
+        const token = await SecureStore.getItemAsync("authToken");
+        if (!token) throw new Error("No authentication token found");
+
+        const response = await axios.get(`${API_BASE_URL}/api/pettycash/pegawai/`, {
+            headers: {
+                "Authorization": `Token ${token}`,
+                "User-Agent": "LIK App/1.1.0",
+                "Accept": "application/json"
+            }
+        });
+
+        return response.data || [];
+    } catch (error) {
+        console.error("Error fetching petty cash employees:", error);
+        throw error;
+    }
+};
+
+// New function to submit petty cash report
+const submitPettyCashReport = async (formData) => {
+    try {
+        const token = await SecureStore.getItemAsync("authToken");
+        if (!token) throw new Error("No authentication token found");
+
+        // Validate required fields
+        if (!formData.kategori || !formData.kategori.id) {
+            throw new Error("Kategori belum dipilih");
+        }
+        if (!formData.pegawai || !formData.pegawai.id) {
+            throw new Error("Pegawai belum dipilih");
+        }
+
+        const formPayload = new FormData();
+
+        // Append all required fields with proper validation
+        formPayload.append('detail_penggunaan', formData.detail_penggunaan || '');
+        formPayload.append('tanggal', formData.tanggal ? formData.tanggal.toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
+        formPayload.append('kategori', formData.kategori.id);
+        formPayload.append('pegawai', formData.pegawai.id);
+        formPayload.append('uang_keluar', formData.uang_keluar || '0');
+
+        // Handle image upload
+        if (formData.foto_bukti && formData.foto_bukti.uri) {
+            formPayload.append('foto_bukti', {
+                uri: formData.foto_bukti.uri,
+                type: 'image/jpeg',
+                name: `bukti_${Date.now()}.jpg`
+            });
+        } else {
+            throw new Error("Foto bukti harus diupload");
+        }
+
+        const response = await axios.post(
+            `${API_BASE_URL}/api/pettycash/create/`,
+            formPayload,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                    "Authorization": `Token ${token}`,
+                    "Accept": "application/json"
+                },
+                timeout: 30000
+            }
+        );
+
+        // Return success data with submission details
+        return {
+            success: true,
+            message: "Laporan petty cash berhasil disimpan!",
+            submissionData: {
+                detail_penggunaan: formData.detail_penggunaan,
+                tanggal: formData.tanggal ? formData.tanggal.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                kategori: formData.kategori.nama,
+                pegawai: formData.pegawai.nama,
+                uang_keluar: formData.uang_keluar,
+            },
+            serverResponse: response.data
+        };
+
+    } catch (error) {
+        console.error("Petty cash submission error:", error);
+
+        let errorDetails = "Terjadi kesalahan. Silakan coba lagi.";
+        if (error.response) {
+            if (error.response.data) {
+                errorDetails = Object.entries(error.response.data)
+                    .map(([field, errors]) => `${field}: ${Array.isArray(errors) ? errors.join(', ') : errors}`)
+                    .join('\n');
+            }
+        } else if (error.message) {
+            errorDetails = error.message;
+        }
+
+        throw new Error(errorDetails);
+    }
+};
+
+const checkPettyCashAccess = async () => {
+    try {
+        const token = await SecureStore.getItemAsync("authToken");
+        if (!token) throw new Error("No authentication token found");
+
+        const [rolesRes, employeesRes] = await Promise.all([
+            axios.get(`${API_BASE_URL}/api/pettycash/role/`, {
+                headers: { "Authorization": `Token ${token}` }
+            }),
+            axios.get(`${API_BASE_URL}/api/pettycash/pegawai/`, {
+                headers: { "Authorization": `Token ${token}` }
+            })
+        ]);
+
+        const hasRoles = rolesRes.data && rolesRes.data.length > 0;
+        const hasEmployees = employeesRes.data && employeesRes.data.length > 0;
+
+        return hasRoles && hasEmployees;
+    } catch (error) {
+        console.error("Error checking petty cash access:", error);
+        return false;
+    }
+};
+
 
 export default {
     checkToken,
     fetchOptions,
-    submitFormData
-};
+    submitFormData,
+    getUserInfo,
+    fetchPettyCashCategories,
+    fetchPettyCashEmployees,
+    fetchPettyCashEmployeesByRole,
+    fetchPettyCashRole,
+    submitPettyCashReport,
+    checkPettyCashAccess
+}; 

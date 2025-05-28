@@ -10,9 +10,12 @@ export default StyleSheet.create({
         paddingBottom: 20,
     },
     notesInput: {
-        minHeight: 80,
-        textAlignVertical: 'center',
-        paddingTop: 12,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        fontSize: 16,
+        textAlignVertical: 'top',
     },
     notesContainer: {
         minHeight: 100,
@@ -48,8 +51,6 @@ export default StyleSheet.create({
         selectedDayBackgroundColor: COLORS.primary,
         selectedDayTextColor: 'white',
         todayTextColor: COLORS.primary,
-        dayTextColor: COLORS.dark,
-        textDisabledColor: COLORS.lightGray,
         arrowColor: COLORS.primary,
         monthTextColor: COLORS.primary,
         indicatorColor: COLORS.primary,
@@ -94,20 +95,23 @@ export default StyleSheet.create({
     },
     image: {
         width: '100%',
-        height: 200,
+        height: 300,
+        borderRadius: 8,
+        marginBottom: 10,
     },
     imageActions: {
         flexDirection: 'row',
-        borderTopWidth: 1,
-        borderTopColor: COLORS.lightGray,
+        justifyContent: 'space-between',
+        width: '100%',
     },
     imageButton: {
-        flex: 1,
-        paddingVertical: 10,
         flexDirection: 'row',
-        justifyContent: 'center',
         alignItems: 'center',
-        gap: 6,
+        padding: 10,
+        borderRadius: 5,
+        flex: 1,
+        marginHorizontal: 5,
+        justifyContent: 'center',
     },
     retakeButton: {
         backgroundColor: COLORS.primary,
@@ -117,8 +121,8 @@ export default StyleSheet.create({
     },
     imageButtonText: {
         color: 'white',
+        marginLeft: 5,
         fontSize: 14,
-        fontWeight: '500',
     },
     submitContainer: {
         marginTop: 8,
@@ -150,5 +154,124 @@ export default StyleSheet.create({
         color: '#666',
         marginTop: 4,
         fontStyle: 'italic',
+    }, imagePreviewContainer: {
+        marginTop: 10,
+        borderWidth: 1,
+        borderColor: COLORS.grey,
+        borderRadius: 8,
+        padding: 10,
+        alignItems: 'center',
     },
+    image: {
+        width: '100%',
+        height: 200,
+        borderRadius: 5,
+    },
+    imageActions: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 10,
+        width: '100%',
+    },
+    imageButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 5,
+    },
+    imageButtonText: {
+        color: COLORS.white,
+        marginLeft: 5,
+        fontSize: 14,
+    },
+    retakeButton: {
+        backgroundColor: COLORS.primary,
+    },
+
+    removeButton: {
+        backgroundColor: COLORS.danger,
+    },
+    photoButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 10,
+    },
+    photoButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 15,
+        borderRadius: 5,
+        width: '48%',
+    },
+    photoButtonText: {
+        color: COLORS.white,
+        marginLeft: 5,
+        fontSize: 14,
+    },
+    galleryButton: {
+        backgroundColor: COLORS.primary,
+    },
+    cameraButton: {
+        backgroundColor: COLORS.secondary,
+    },
+    photoNote: {
+        fontSize: 12,
+        color: COLORS.grey,
+        marginBottom: 5,
+    },
+    photoSelectionContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 10,
+    },
+    photoSelectionButton: {
+        width: '48%',
+        padding: 20,
+        borderRadius: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    cameraButton: {
+        backgroundColor: COLORS.primary,
+    },
+    galleryButton: {
+        backgroundColor: COLORS.secondary,
+    },
+    photoButtonIconContainer: {
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 10,
+    },
+    photoSelectionButtonText: {
+        color: COLORS.white,
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginBottom: 5,
+        textAlign: 'center',
+    },
+    photoSelectionButtonSubtext: {
+        color: 'rgba(255,255,255,0.8)',
+        fontSize: 12,
+        textAlign: 'center',
+    },
+    errorText: {
+        color: 'red',
+        fontSize: 12,
+        marginTop: 4,
+        marginLeft: 4,
+    }
+
+
 });

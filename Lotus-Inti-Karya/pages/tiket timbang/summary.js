@@ -11,12 +11,12 @@ import {
   ActivityIndicator,
 } from "react-native";
 import axios from "axios";
-import { API_BASE_URL } from "../constants";
+import { API_BASE_URL } from "../../constants/constants";
 import * as SecureStore from "expo-secure-store";
-import Navbar from "../components/Navbar";
+import Navbar from "../../components/Navbar";
 import { useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
-import COLORS from "../constants/colors";
+import COLORS from "../../constants/colors";
 
 const ReportSummary = () => {
   const [summary, setSummary] = useState([]);
@@ -42,14 +42,34 @@ const ReportSummary = () => {
   const fetchSummary = async (startDate = null, endDate = null) => {
     try {
       const senderId = await SecureStore.getItemAsync("User");
+      if (!senderId) throw new Error("User ID not found");
+
       const params = {
         start_date: startDate,
         end_date: endDate,
       };
-      const response = await axios.get(`${API_BASE_URL}/api/report-summary/${senderId}/`, { params });
+
+      console.log("Request URL:", `${API_BASE_URL}/api/report-summary/${senderId}/`);
+      console.log("Params:", params);
+
+      const response = await axios.get(
+        `${API_BASE_URL}/api/report-summary/${senderId}/`,
+        {
+          params,
+          headers: {
+            "Authorization": `Token ${await SecureStore.getItemAsync("authToken")}`
+          }
+        }
+      );
+
+      console.log("Response:", response.data);
       setSummary(response.data);
     } catch (error) {
-      console.error("Error fetching summary:", error);
+      console.error("Full error details:", {
+        message: error.message,
+        response: error.response?.data,
+        config: error.config
+      });
     } finally {
       setLoading(false);
     }
@@ -121,7 +141,8 @@ const ReportSummary = () => {
 
   return (
     <SafeAreaView style={[styles.container, { paddingTop: statusBarHeight }]}>
-      <Navbar title="Ringkasan Pengiriman" showBackButton={true} navigation={navigation} />
+      <Navbar title="Ringkasan Pengiriman" showBackButton={true} navigation={navigation} color="#1a73e8"
+      />
 
       {loading ? (
         <View style={styles.loadingContainer}>

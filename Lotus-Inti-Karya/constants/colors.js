@@ -10,4 +10,5 @@ const COLORS = {
     danger: "#d9534f",
 }
 
+
 export default COLORS;
