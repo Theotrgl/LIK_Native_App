@@ -9,10 +9,11 @@ import {
     Dimensions,
     ActivityIndicator,
     Alert,
-    Animated,
+    SafeAreaView,
+    Platform,
     PanResponder,
-    Easing,
-    SafeAreaView
+    StatusBar,
+    ScrollView
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -20,38 +21,21 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const MIN_CROP_SIZE = 100;
-const CROP_HANDLE_SIZE = 40;
 const CROP_BORDER_WIDTH = 2;
 const CROP_CORNER_SIZE = 25;
 const CROP_EDGE_THICKNESS = 25;
 const INTERACTION_AREA = CROP_EDGE_THICKNESS * 1.5;
 
-const ROTATE_OPTIONS = [
-    { degrees: -90, icon: 'rotate-ccw', label: 'Ke Kiri' },
-    { degrees: 90, icon: 'rotate-cw', label: 'Ke Kanan' },
-];
-
 const TOOLS = [
     { key: 'rotate', name: 'Putar', icon: 'rotate-cw' },
     { key: 'crop', name: 'Potong', icon: 'crop' },
+    { key: 'reset', name: 'Reset', icon: 'refresh-ccw' },
 ];
 
-const compressAndFormatImage = async (uri) => {
-    try {
-        const result = await ImageManipulator.manipulateAsync(
-            uri,
-            [],
-            {
-                compress: 0.7,
-                format: ImageManipulator.SaveFormat.JPEG,
-            }
-        );
-        return result.uri;
-    } catch (error) {
-        console.error('Error kompresi gambar:', error);
-        return uri;
-    }
-};
+const ROTATE_OPTIONS = [
+    { degrees: -90, icon: 'rotate-ccw', label: 'Putar Kiri' },
+    { degrees: 90, icon: 'rotate-cw', label: 'Putar Kanan' },
+];
 
 const ImageEditorModal = ({
     visible,
@@ -59,8 +43,11 @@ const ImageEditorModal = ({
     imageUri,
     onSave,
     onError,
+    closeButtonText = "Cancel",
+    saveButtonText = "Save",
 }) => {
     const [currentImage, setCurrentImage] = useState(null);
+    const [originalImage, setOriginalImage] = useState(null);
     const [activeTool, setActiveTool] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [cropData, setCropData] = useState({
@@ -71,7 +58,6 @@ const ImageEditorModal = ({
     });
     const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
     const [displayDimensions, setDisplayDimensions] = useState({ width: 0, height: 0 });
-    const [fadeAnim] = useState(new Animated.Value(0));
     const [scaleFactor, setScaleFactor] = useState({ x: 1, y: 1 });
     const [interactionType, setInteractionType] = useState(null);
     const [initialTouch, setInitialTouch] = useState({ x: 0, y: 0 });
@@ -80,9 +66,7 @@ const ImageEditorModal = ({
     const panResponder = useRef(
         PanResponder.create({
             onStartShouldSetPanResponder: () => true,
-            onStartShouldSetPanResponderCapture: () => true,
             onMoveShouldSetPanResponder: () => true,
-            onMoveShouldSetPanResponderCapture: () => true,
             onPanResponderGrant: (evt, gestureState) => {
                 if (activeTool !== 'crop') return;
 
@@ -92,34 +76,25 @@ const ImageEditorModal = ({
 
                 const { originX, originY, width, height } = cropData;
 
-                // Check if touch is near the edges or corners
-                const isLeftEdge = Math.abs(locationX - originX) < INTERACTION_AREA;
-                const isRightEdge = Math.abs(locationX - (originX + width)) < INTERACTION_AREA;
-                const isTopEdge = Math.abs(locationY - originY) < INTERACTION_AREA;
-                const isBottomEdge = Math.abs(locationY - (originY + height)) < INTERACTION_AREA;
+                // Perluas area interaksi untuk memudahkan pengguna
+                const interactionMargin = INTERACTION_AREA * 1.5;
 
-                if (isLeftEdge && isTopEdge) {
-                    setInteractionType('top-left');
-                } else if (isRightEdge && isTopEdge) {
-                    setInteractionType('top-right');
-                } else if (isLeftEdge && isBottomEdge) {
-                    setInteractionType('bottom-left');
-                } else if (isRightEdge && isBottomEdge) {
-                    setInteractionType('bottom-right');
-                } else if (isLeftEdge) {
-                    setInteractionType('left');
-                } else if (isRightEdge) {
-                    setInteractionType('right');
-                } else if (isTopEdge) {
-                    setInteractionType('top');
-                } else if (isBottomEdge) {
-                    setInteractionType('bottom');
-                } else if (
-                    locationX > originX &&
-                    locationX < originX + width &&
-                    locationY > originY &&
-                    locationY < originY + height
-                ) {
+                // Check touch position for edges/corners
+                const isLeftEdge = Math.abs(locationX - originX) < interactionMargin;
+                const isRightEdge = Math.abs(locationX - (originX + width)) < interactionMargin;
+                const isTopEdge = Math.abs(locationY - originY) < interactionMargin;
+                const isBottomEdge = Math.abs(locationY - (originY + height)) < interactionMargin;
+
+                if (isLeftEdge && isTopEdge) setInteractionType('top-left');
+                else if (isRightEdge && isTopEdge) setInteractionType('top-right');
+                else if (isLeftEdge && isBottomEdge) setInteractionType('bottom-left');
+                else if (isRightEdge && isBottomEdge) setInteractionType('bottom-right');
+                else if (isLeftEdge) setInteractionType('left');
+                else if (isRightEdge) setInteractionType('right');
+                else if (isTopEdge) setInteractionType('top');
+                else if (isBottomEdge) setInteractionType('bottom');
+                else if (locationX > originX && locationX < originX + width &&
+                    locationY > originY && locationY < originY + height) {
                     setInteractionType('move');
                 } else {
                     setInteractionType(null);
@@ -133,27 +108,30 @@ const ImageEditorModal = ({
                 const dy = moveY - initialTouch.y;
 
                 const { originX, originY, width, height } = initialCropData;
-
                 let newCropData = { ...initialCropData };
+
+                // Batasi pergerakan dalam batas gambar
+                const maxX = displayDimensions.width;
+                const maxY = displayDimensions.height;
 
                 switch (interactionType) {
                     case 'move':
-                        newCropData.originX = Math.max(0, Math.min(SCREEN_WIDTH - width, originX + dx));
-                        newCropData.originY = Math.max(0, Math.min(displayDimensions.height - height, originY + dy));
+                        newCropData.originX = Math.max(0, Math.min(maxX - width, originX + dx));
+                        newCropData.originY = Math.max(0, Math.min(maxY - height, originY + dy));
                         break;
                     case 'left':
                         newCropData.originX = Math.max(0, Math.min(originX + width - MIN_CROP_SIZE, originX + dx));
                         newCropData.width = Math.max(MIN_CROP_SIZE, Math.min(originX + width, width - dx));
                         break;
                     case 'right':
-                        newCropData.width = Math.max(MIN_CROP_SIZE, Math.min(SCREEN_WIDTH - originX, width + dx));
+                        newCropData.width = Math.max(MIN_CROP_SIZE, Math.min(maxX - originX, width + dx));
                         break;
                     case 'top':
                         newCropData.originY = Math.max(0, Math.min(originY + height - MIN_CROP_SIZE, originY + dy));
                         newCropData.height = Math.max(MIN_CROP_SIZE, Math.min(originY + height, height - dy));
                         break;
                     case 'bottom':
-                        newCropData.height = Math.max(MIN_CROP_SIZE, Math.min(displayDimensions.height - originY, height + dy));
+                        newCropData.height = Math.max(MIN_CROP_SIZE, Math.min(maxY - originY, height + dy));
                         break;
                     case 'top-left':
                         newCropData.originX = Math.max(0, Math.min(originX + width - MIN_CROP_SIZE, originX + dx));
@@ -162,18 +140,18 @@ const ImageEditorModal = ({
                         newCropData.height = Math.max(MIN_CROP_SIZE, Math.min(originY + height, height - dy));
                         break;
                     case 'top-right':
-                        newCropData.width = Math.max(MIN_CROP_SIZE, Math.min(SCREEN_WIDTH - originX, width + dx));
+                        newCropData.width = Math.max(MIN_CROP_SIZE, Math.min(maxX - originX, width + dx));
                         newCropData.originY = Math.max(0, Math.min(originY + height - MIN_CROP_SIZE, originY + dy));
                         newCropData.height = Math.max(MIN_CROP_SIZE, Math.min(originY + height, height - dy));
                         break;
                     case 'bottom-left':
                         newCropData.originX = Math.max(0, Math.min(originX + width - MIN_CROP_SIZE, originX + dx));
                         newCropData.width = Math.max(MIN_CROP_SIZE, Math.min(originX + width, width - dx));
-                        newCropData.height = Math.max(MIN_CROP_SIZE, Math.min(displayDimensions.height - originY, height + dy));
+                        newCropData.height = Math.max(MIN_CROP_SIZE, Math.min(maxY - originY, height + dy));
                         break;
                     case 'bottom-right':
-                        newCropData.width = Math.max(MIN_CROP_SIZE, Math.min(SCREEN_WIDTH - originX, width + dx));
-                        newCropData.height = Math.max(MIN_CROP_SIZE, Math.min(displayDimensions.height - originY, height + dy));
+                        newCropData.width = Math.max(MIN_CROP_SIZE, Math.min(maxX - originX, width + dx));
+                        newCropData.height = Math.max(MIN_CROP_SIZE, Math.min(maxY - originY, height + dy));
                         break;
                     default:
                         break;
@@ -188,48 +166,45 @@ const ImageEditorModal = ({
     ).current;
 
     useEffect(() => {
-        if (visible) {
-            Animated.timing(fadeAnim, {
-                toValue: 1,
-                duration: 300,
-                easing: Easing.ease,
-                useNativeDriver: true,
-            }).start();
-        } else {
-            fadeAnim.setValue(0);
-        }
-    }, [visible]);
-
-    useEffect(() => {
-        if (imageUri) {
+        if (visible && imageUri) {
             setCurrentImage(imageUri);
-            Image.getSize(imageUri, (width, height) => {
-                setImageDimensions({ width, height });
-                const displayHeight = (SCREEN_WIDTH * height) / width;
-                setDisplayDimensions({
-                    width: SCREEN_WIDTH,
-                    height: displayHeight
-                });
-                const scaleX = width / SCREEN_WIDTH;
-                const scaleY = height / displayHeight;
-                setScaleFactor({ x: scaleX, y: scaleY });
-                const initialWidth = Math.min(SCREEN_WIDTH * 0.9, SCREEN_WIDTH);
-                const initialHeight = Math.min(displayHeight * 0.7, displayHeight);
-
-                const initialCropData = {
-                    originX: (SCREEN_WIDTH - initialWidth) / 2,
-                    originY: (displayHeight - initialHeight) / 2,
-                    width: initialWidth,
-                    height: initialHeight
-                };
-
-                setCropData(initialCropData);
-            }, (error) => {
-                console.error('Error getting image size:', error);
-                handleError('Gagal memuat gambar', error);
-            });
+            setOriginalImage(imageUri);
+            loadImageDimensions(imageUri);
+        } else {
+            resetEditor();
         }
-    }, [imageUri]);
+    }, [visible, imageUri]);
+
+    const loadImageDimensions = (uri) => {
+        Image.getSize(uri, (width, height) => {
+            const displayHeight = (SCREEN_WIDTH * height) / width;
+            setImageDimensions({ width, height });
+            setDisplayDimensions({ width: SCREEN_WIDTH, height: displayHeight });
+            setScaleFactor({ x: width / SCREEN_WIDTH, y: height / displayHeight });
+
+            // Set initial crop area (80% of image centered)
+            const initialWidth = Math.min(SCREEN_WIDTH * 0.8, SCREEN_WIDTH);
+            const initialHeight = Math.min(displayHeight * 0.8, displayHeight);
+
+            setCropData({
+                originX: (SCREEN_WIDTH - initialWidth) / 2,
+                originY: (displayHeight - initialHeight) / 2,
+                width: initialWidth,
+                height: initialHeight
+            });
+        }, (error) => {
+            console.error('Error getting image size:', error);
+            handleError('Failed to load image', error);
+        });
+    };
+
+    const resetEditor = () => {
+        setCurrentImage(originalImage || imageUri);
+        setActiveTool(null);
+        if (originalImage || imageUri) {
+            loadImageDimensions(originalImage || imageUri);
+        }
+    };
 
     const handleRotate = async (degrees) => {
         if (!currentImage) return;
@@ -241,32 +216,10 @@ const ImageEditorModal = ({
                 { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
             );
             setCurrentImage(rotatedImage.uri);
-            Image.getSize(rotatedImage.uri, (width, height) => {
-                setImageDimensions({ width, height });
-                const displayHeight = (SCREEN_WIDTH * height) / width;
-                setDisplayDimensions({
-                    width: SCREEN_WIDTH,
-                    height: displayHeight
-                });
-                setScaleFactor({
-                    x: width / SCREEN_WIDTH,
-                    y: height / displayHeight
-                });
-                const newWidth = Math.min(SCREEN_WIDTH * 0.9, SCREEN_WIDTH);
-                const newHeight = Math.min(displayHeight * 0.7, displayHeight);
-
-                const newCropData = {
-                    originX: (SCREEN_WIDTH - newWidth) / 2,
-                    originY: (displayHeight - newHeight) / 2,
-                    width: newWidth,
-                    height: newHeight
-                };
-
-                setCropData(newCropData);
-            });
+            loadImageDimensions(rotatedImage.uri);
         } catch (error) {
-            console.error('Error rotating:', error);
-            handleError('Gagal memutar gambar', error);
+            console.error('Rotation error:', error);
+            handleError('Failed to rotate image', error);
         } finally {
             setIsProcessing(false);
         }
@@ -297,31 +250,32 @@ const ImageEditorModal = ({
 
             setCurrentImage(croppedImage.uri);
             setActiveTool(null);
-
-            // Update dimensions after crop
-            Image.getSize(croppedImage.uri, (width, height) => {
-                setImageDimensions({ width, height });
-                const displayHeight = (SCREEN_WIDTH * height) / width;
-                setDisplayDimensions({
-                    width: SCREEN_WIDTH,
-                    height: displayHeight
-                });
-                setScaleFactor({
-                    x: width / SCREEN_WIDTH,
-                    y: height / displayHeight
-                });
-
-                // Reset crop area to full image
-                setCropData({
-                    originX: 0,
-                    originY: 0,
-                    width: SCREEN_WIDTH,
-                    height: displayHeight
-                });
-            });
+            loadImageDimensions(croppedImage.uri);
         } catch (error) {
-            console.error('Error cropping:', error);
-            handleError('Gagal memotong gambar', error);
+            console.error('Cropping error:', error);
+            handleError('Failed to crop image', error);
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const handleSave = async () => {
+        if (!currentImage) {
+            Alert.alert("Error", "No image to save");
+            return;
+        }
+        setIsProcessing(true);
+        try {
+            const compressedUri = await ImageManipulator.manipulateAsync(
+                currentImage,
+                [],
+                { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+            );
+            onSave(compressedUri.uri);
+            onClose();
+        } catch (error) {
+            console.error('Saving error:', error);
+            handleError('Failed to save image', error);
         } finally {
             setIsProcessing(false);
         }
@@ -331,22 +285,7 @@ const ImageEditorModal = ({
         if (onError) {
             onError(error || new Error(message));
         } else {
-            Alert.alert("Terjadi Kesalahan", message);
-        }
-    };
-
-    const handleSave = async () => {
-        if (!currentImage) {
-            Alert.alert("Kesalahan", "Tidak ada gambar untuk disimpan");
-            return;
-        }
-        try {
-            const compressedUri = await compressAndFormatImage(currentImage);
-            onSave(compressedUri);
-            onClose();
-        } catch (error) {
-            console.error('Error saving:', error);
-            handleError('Gagal menyimpan gambar', error);
+            Alert.alert("Error", message);
         }
     };
 
@@ -355,7 +294,10 @@ const ImageEditorModal = ({
 
         return (
             <View
-                style={styles.cropOverlay}
+                style={[styles.cropOverlay, {
+                    width: displayDimensions.width,
+                    height: displayDimensions.height,
+                }]}
                 {...panResponder.panHandlers}
                 pointerEvents="box-only"
             >
@@ -386,7 +328,7 @@ const ImageEditorModal = ({
             return (
                 <View style={styles.toolContainer}>
                     <ActivityIndicator size="large" color="#4A90E2" />
-                    <Text style={styles.toolTitle}>Sedang memproses...</Text>
+                    <Text style={styles.toolTitle}>Processing...</Text>
                 </View>
             );
         }
@@ -394,7 +336,7 @@ const ImageEditorModal = ({
         switch (activeTool) {
             case 'rotate':
                 return (
-                    <Animated.View style={[styles.toolContainer, { opacity: fadeAnim }]}>
+                    <View style={styles.toolContainer}>
                         <Text style={styles.toolTitle}>Putar Gambar</Text>
                         <View style={styles.transformActions}>
                             {ROTATE_OPTIONS.map((option) => (
@@ -403,7 +345,7 @@ const ImageEditorModal = ({
                                     style={styles.transformButton}
                                     onPress={() => handleRotate(option.degrees)}
                                 >
-                                    <Feather name={option.icon} size={30} color="#4A90E2" />
+                                    <Feather name={option.icon} size={24} color="#4A90E2" />
                                     <Text style={styles.transformButtonText}>{option.label}</Text>
                                 </TouchableOpacity>
                             ))}
@@ -419,17 +361,17 @@ const ImageEditorModal = ({
                                 style={styles.primaryButton}
                                 onPress={() => setActiveTool(null)}
                             >
-                                <Text style={styles.primaryButtonText}>Selesai</Text>
+                                <Text style={styles.primaryButtonText}>Terapkan</Text>
                             </TouchableOpacity>
                         </View>
-                    </Animated.View>
+                    </View>
                 );
             case 'crop':
                 return (
-                    <Animated.View style={[styles.toolContainer, { opacity: fadeAnim }]}>
+                    <View style={styles.toolContainer}>
                         <Text style={styles.toolTitle}>Potong Gambar</Text>
                         <Text style={styles.instructionText}>
-                            Geser tepian untuk mengubah ukuran atau geser tengah untuk memindahkan area potong
+                            Seret tepi untuk mengubah ukuran atau seret tengah untuk memindahkan area potong
                         </Text>
                         <View style={styles.actionButtonsContainer}>
                             <TouchableOpacity
@@ -442,10 +384,33 @@ const ImageEditorModal = ({
                                 style={styles.primaryButton}
                                 onPress={handleCrop}
                             >
-                                <Text style={styles.primaryButtonText}>Potong</Text>
+                                <Text style={styles.primaryButtonText}>Terapkan</Text>
                             </TouchableOpacity>
                         </View>
-                    </Animated.View>
+                    </View>
+                );
+            case 'reset':
+                return (
+                    <View style={styles.toolContainer}>
+                        <Text style={styles.toolTitle}>Reset Gambar</Text>
+                        <Text style={styles.instructionText}>
+                            Ini akan membatalkan semua perubahan
+                        </Text>
+                        <View style={styles.actionButtonsContainer}>
+                            <TouchableOpacity
+                                style={styles.secondaryButton}
+                                onPress={() => setActiveTool(null)}
+                            >
+                                <Text style={styles.secondaryButtonText}>Batal</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.primaryButton}
+                                onPress={resetEditor}
+                            >
+                                <Text style={styles.primaryButtonText}>Reset</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 );
             default:
                 return null;
@@ -456,9 +421,10 @@ const ImageEditorModal = ({
         return (
             <Modal visible={visible} onRequestClose={onClose} transparent>
                 <View style={styles.emptyContainer}>
-                    <Text style={styles.emptyText}>Tidak ada gambar yang tersedia</Text>
+                    <ActivityIndicator size="large" color="#4A90E2" />
+                    <Text style={styles.emptyText}>Loading Gambar...</Text>
                     <TouchableOpacity style={styles.primaryButton} onPress={onClose}>
-                        <Text style={styles.primaryButtonText}>Tutup</Text>
+                        <Text style={styles.primaryButtonText}>{closeButtonText}</Text>
                     </TouchableOpacity>
                 </View>
             </Modal>
@@ -473,118 +439,179 @@ const ImageEditorModal = ({
             onRequestClose={onClose}
             statusBarTranslucent
         >
-            <SafeAreaView style={{ flex: 1, backgroundColor: '#121212' }}>
+            <SafeAreaView style={styles.safeArea}>
+                <StatusBar
+                    backgroundColor="#1E1E1E"
+                    barStyle="light-content"
+                    translucent={true}
+                />
                 <GestureHandlerRootView style={styles.container}>
-                    <View style={styles.header}>
-                        <TouchableOpacity
-                            style={styles.headerButton}
-                            onPress={onClose}
-                            hitSlop={{ top: 30, bottom: 30, left: 30, right: 30 }}
-                        >
-                            <Feather name="x" size={28} color="white" />
-                        </TouchableOpacity>
-                        <Text style={styles.headerTitle}>Edit Gambar</Text>
-                        <TouchableOpacity
-                            style={styles.headerButton}
-                            onPress={handleSave}
-                            hitSlop={{ top: 30, bottom: 30, left: 30, right: 30 }}
-                        >
-                            <Feather name="check" size={28} color="#4A90E2" />
-                        </TouchableOpacity>
+                    <View style={styles.headerContainer}>
+                        <View style={styles.header}>
+                            <TouchableOpacity
+                                style={styles.headerButton}
+                                onPress={onClose}
+                            >
+                                <Feather name="x" size={24} color="white" />
+                                <Text style={styles.headerButtonText}>{closeButtonText}</Text>
+                            </TouchableOpacity>
+                            <Text style={styles.headerTitle}>Edit Gambar</Text>
+                            <TouchableOpacity
+                                style={styles.headerButton}
+                                onPress={handleSave}
+                                disabled={isProcessing}
+                            >
+                                {isProcessing ? (
+                                    <ActivityIndicator size="small" color="#4A90E2" />
+                                ) : (
+                                    <>
+                                        <Feather name="check" size={24} color="#4A90E2" />
+                                        <Text style={[styles.headerButtonText, styles.saveButtonText]}>{saveButtonText}</Text>
+                                    </>
+                                )}
+                            </TouchableOpacity>
+                        </View>
                     </View>
 
-                    <View style={styles.imageContainer}>
-                        <Image
-                            source={{ uri: currentImage }}
-                            style={{
-                                width: displayDimensions.width,
-                                height: displayDimensions.height
-                            }}
-                            resizeMode="contain"
-                        />
-                        {activeTool === 'crop' && renderCropOverlay()}
-                    </View>
+                    <ScrollView
+                        style={styles.scrollContainer}
+                        contentContainerStyle={styles.scrollContentContainer}
+                        maximumZoomScale={3}
+                        minimumZoomScale={1}
+                    >
+                        <View style={styles.imageContainer}>
+                            <Image
+                                source={{ uri: currentImage }}
+                                style={{
+                                    width: displayDimensions.width,
+                                    height: displayDimensions.height,
+                                    minWidth: SCREEN_WIDTH,
+                                    minHeight: SCREEN_WIDTH * 0.75
+                                }}
+                                resizeMode="contain"
+                            />
+                            {activeTool === 'crop' && renderCropOverlay()}
+                        </View>
+                    </ScrollView>
 
                     {renderToolContent()}
 
                     {!activeTool && !isProcessing && (
-                        <Animated.View style={[styles.toolbar, { opacity: fadeAnim }]}>
+                        <View style={styles.toolbar}>
                             {TOOLS.map((tool) => (
                                 <TouchableOpacity
                                     key={tool.key}
                                     style={styles.toolButton}
                                     onPress={() => setActiveTool(tool.key)}
-                                    activeOpacity={0.7}
+                                    disabled={tool.key === 'reset' && currentImage === originalImage}
                                 >
-                                    <View style={styles.toolIconContainer}>
-                                        <Feather name={tool.icon} size={28} color="#4A90E2" />
+                                    <View style={[
+                                        styles.toolIconContainer,
+                                        (tool.key === 'reset' && currentImage === originalImage) && styles.disabledTool
+                                    ]}>
+                                        <Feather
+                                            name={tool.icon}
+                                            size={24}
+                                            color={
+                                                tool.key === 'reset' && currentImage === originalImage ?
+                                                    '#666' : '#4A90E2'
+                                            }
+                                        />
                                     </View>
-                                    <Text style={styles.toolButtonText}>{tool.name}</Text>
+                                    <Text style={[
+                                        styles.toolButtonText,
+                                        (tool.key === 'reset' && currentImage === originalImage) && styles.disabledToolText
+                                    ]}>
+                                        {tool.name}
+                                    </Text>
                                 </TouchableOpacity>
                             ))}
-                        </Animated.View>
+                        </View>
                     )}
                 </GestureHandlerRootView>
             </SafeAreaView>
         </Modal>
     );
 };
-
 const styles = StyleSheet.create({
-    container: {
+    safeArea: {
         flex: 1,
         backgroundColor: '#121212',
     },
-    emptyContainer: {
+    container: {
         flex: 1,
+    },
+    scrollContainer: {
+        flex: 1,
+        backgroundColor: '#000',
+    },
+    scrollContentContainer: {
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.9)',
-        padding: 20,
     },
-    emptyText: {
-        color: 'white',
-        fontSize: 20,
-        marginBottom: 30,
-        textAlign: 'center',
+    headerContainer: {
+        backgroundColor: '#1E1E1E',
+        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 16,
-        paddingTop: 10, // Reduced paddingTop
-        backgroundColor: '#1E1E1E',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#333',
     },
-    headerButton: {
-        padding: 12,
-        zIndex: 1, // Ensure buttons are always tappable
-    },
-    headerTitle: {
-        color: 'white',
-        fontSize: 20,
-        fontWeight: '600',
-    },
-    imageContainer: {
+    emptyContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#000',
+        backgroundColor: '#121212',
+        padding: 20,
     },
-    cropOverlay: {
-        ...StyleSheet.absoluteFillObject,
+    emptyText: {
+        color: 'white',
+        fontSize: 18,
+        marginBottom: 20,
+    },
+    headerButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 8,
+        minWidth: 80,
+    },
+    headerButtonText: {
+        color: 'white',
+        marginLeft: 8,
+        fontSize: 16,
+    },
+    saveButtonText: {
+        color: '#4A90E2',
+    },
+    headerTitle: {
+        color: 'white',
+        fontSize: 18,
+        fontWeight: '600',
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        textAlign: 'center',
+        zIndex: -1,
+    },
+    imageContainer: {
         justifyContent: 'center',
         alignItems: 'center',
+        paddingVertical: 20,
+    },
+
+    cropOverlay: {
+        position: 'absolute',
+        backgroundColor: 'rgba(0,0,0,0.6)',
     },
     cropArea: {
         position: 'absolute',
         borderWidth: CROP_BORDER_WIDTH,
         borderColor: 'white',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.8,
-        shadowRadius: 4,
-        elevation: 5,
     },
     cropCorner: {
         position: 'absolute',
@@ -596,26 +623,26 @@ const styles = StyleSheet.create({
     cropCornerTL: {
         top: -CROP_BORDER_WIDTH,
         left: -CROP_BORDER_WIDTH,
-        borderLeftWidth: 4,
-        borderTopWidth: 4,
+        borderLeftWidth: 3,
+        borderTopWidth: 3,
     },
     cropCornerTR: {
         top: -CROP_BORDER_WIDTH,
         right: -CROP_BORDER_WIDTH,
-        borderRightWidth: 4,
-        borderTopWidth: 4,
+        borderRightWidth: 3,
+        borderTopWidth: 3,
     },
     cropCornerBL: {
         bottom: -CROP_BORDER_WIDTH,
         left: -CROP_BORDER_WIDTH,
-        borderLeftWidth: 4,
-        borderBottomWidth: 4,
+        borderLeftWidth: 3,
+        borderBottomWidth: 3,
     },
     cropCornerBR: {
         bottom: -CROP_BORDER_WIDTH,
         right: -CROP_BORDER_WIDTH,
-        borderRightWidth: 4,
-        borderBottomWidth: 4,
+        borderRightWidth: 3,
+        borderBottomWidth: 3,
     },
     cropEdge: {
         position: 'absolute',
@@ -648,95 +675,102 @@ const styles = StyleSheet.create({
     toolbar: {
         flexDirection: 'row',
         justifyContent: 'space-around',
-        paddingVertical: 20,
-        paddingBottom: 30,
+        paddingVertical: 12,
+        paddingBottom: Platform.OS === 'android' ? 24 : 12,
         backgroundColor: '#1E1E1E',
         borderTopWidth: 1,
         borderTopColor: '#333',
     },
     toolButton: {
         alignItems: 'center',
-        width: '40%',
+        width: '30%',
     },
     toolIconContainer: {
         backgroundColor: '#252525',
-        width: 60,
-        height: 60,
-        borderRadius: 30,
+        width: 50,
+        height: 50,
+        borderRadius: 25,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 10,
+        marginBottom: 8,
+    },
+    disabledTool: {
+        opacity: 0.5,
     },
     toolButtonText: {
         color: 'white',
-        fontSize: 16,
-        fontWeight: '500',
+        fontSize: 14,
+    },
+    disabledToolText: {
+        color: '#666',
     },
     toolContainer: {
-        padding: 20,
+        padding: 16,
+        paddingBottom: Platform.OS === 'android' ? 24 : 16,
         backgroundColor: '#1E1E1E',
         borderTopWidth: 1,
         borderTopColor: '#333',
     },
     toolTitle: {
         color: 'white',
-        fontSize: 20,
+        fontSize: 18,
         textAlign: 'center',
-        marginBottom: 10,
+        marginBottom: 16,
         fontWeight: '600',
     },
     instructionText: {
         color: '#AAA',
         fontSize: 14,
         textAlign: 'center',
-        marginBottom: 20,
-        fontStyle: 'italic',
+        marginBottom: 16,
+        paddingHorizontal: 20,
     },
     transformActions: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 30,
+        justifyContent: 'space-around',
+        marginBottom: 16,
     },
     transformButton: {
         alignItems: 'center',
-        padding: 20,
-        borderRadius: 10,
+        padding: 12,
+        borderRadius: 8,
         backgroundColor: '#252525',
-        width: '48%',
+        width: '45%',
     },
     transformButtonText: {
         color: 'white',
-        marginTop: 10,
-        fontSize: 16,
+        marginTop: 8,
+        fontSize: 14,
     },
     actionButtonsContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+        marginTop: 16,
     },
     primaryButton: {
         flex: 1,
-        padding: 18,
-        borderRadius: 10,
+        padding: 14,
+        borderRadius: 8,
         backgroundColor: '#4A90E2',
         alignItems: 'center',
-        marginLeft: 10,
+        marginLeft: 8,
     },
     primaryButtonText: {
         color: 'white',
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: '600',
     },
     secondaryButton: {
         flex: 1,
-        padding: 18,
-        borderRadius: 10,
+        padding: 14,
+        borderRadius: 8,
         backgroundColor: '#252525',
         alignItems: 'center',
-        marginRight: 10,
+        marginRight: 8,
     },
     secondaryButtonText: {
         color: 'white',
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: '600',
     },
 });

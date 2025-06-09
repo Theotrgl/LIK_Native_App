@@ -61,6 +61,7 @@ const DESTINATION_RULES = {
   'Cipta Mandala': {
     woodType: 'Log',
     poValue: '-',
+    doValue: '-', // Tambahkan ini
     ticketRegex: /^\d{6}$/,
     ticketMaxLength: 6,
     ticketPlaceholder: "Contoh: 123456 (6 digit angka)"
@@ -132,6 +133,7 @@ const FormDeliveryInput = () => {
     }
 
     if (rules.poValue !== undefined) updates.PO = rules.poValue;
+    if (rules.doValue !== undefined) updates.DO = rules.doValue; // Tambahkan ini
     if (rules.rejectValue !== undefined) updates.reject = rules.rejectValue;
 
     if (Object.keys(updates).length > 0) {
@@ -192,7 +194,7 @@ const FormDeliveryInput = () => {
       return false;
     }
 
-    if (!/^\d+$/.test(formData.DO) || !/^\d+$/.test(formData.berat) || !/^\d+$/.test(formData.reject)) {
+    if (!/^\d+$/.test(formData.berat) || !/^\d+$/.test(formData.reject)) {
       Alert.alert("Format Angka Salah", "DO, Berat, dan Reject harus berupa angka bulat");
       return false;
     }
@@ -317,7 +319,8 @@ const FormDeliveryInput = () => {
         ? options.kayuOpt.find(item => item.nama === rules.woodType)
         : formData.kayu,
       reject: rules.rejectValue !== undefined ? rules.rejectValue : formData.reject,
-      PO: rules.poValue !== undefined ? rules.poValue : formData.PO
+      PO: rules.poValue !== undefined ? rules.poValue : formData.PO,
+      DO: rules.doValue !== undefined ? rules.doValue : formData.DO // Tambahkan ini
     };
   };
 
@@ -551,8 +554,18 @@ const FormDeliveryInput = () => {
                 icon="file-text"
                 value={formData.DO}
                 onChangeText={(text) => handleChange('DO', text)}
-                placeholder="No. DO"
+                placeholder={
+                  formData.tujuan?.nama === 'Cipta Mandala'
+                    ? "Tidak diperlukan (otomatis '-')"
+                    : "No. DO"
+                }
                 keyboardType="default"
+                editable={formData.tujuan?.nama !== 'Cipta Mandala'}
+                style={
+                  formData.tujuan?.nama === 'Cipta Mandala'
+                    ? styles.disabledInput
+                    : null
+                }
               />
 
               <MyTextInput
